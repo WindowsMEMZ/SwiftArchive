@@ -60,10 +60,12 @@ struct ContentView: View {
                 if isSuccess {
                     if let serverVer = Int(respStr) {
                         if resVersion < serverVer {
+                            UIApplication.shared.isIdleTimerDisabled = true
                             statusText = "正在准备更新..."
                             DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/link") { respStr, isSuccess in
                                 if isSuccess {
                                     isDownloading = true
+                                    statusText = "正在下载更新..."
                                     let downloadLink = respStr.apiFixed()
                                     let destination: DownloadRequest.Destination = { _, _ in
                                         let documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -71,42 +73,91 @@ struct ContentView: View {
 
                                         return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
                                     }
-                                    AF.download(downloadLink, to: destination)
-                                        .downloadProgress { p in
-                                            downloadProgress = p.fractionCompleted
-                                            downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))%"
-                                        }
-                                        .response { r in
-                                            if r.error == nil, let filePath = r.fileURL?.path {
-                                                debugPrint(filePath)
-                                                statusText = "验证下载档案中..."
-                                                if let fMd5 = fileMD5(url: URL(fileURLWithPath: filePath)) {
-                                                    DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/fmd5") { respStr, isSuccess in
-                                                        if isSuccess {
-                                                            if respStr.apiFixed() == fMd5 {
-                                                                statusText = "正在解压..."
-                                                                Task {
-                                                                    let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                                                                    let fileURL = documentsURL.appendingPathComponent("res/")
-                                                                    do {
-                                                                        try SSZipArchive.unzipFile(atPath: filePath, toDestination: fileURL.path, overwrite: true, password: nil)
-                                                                        isFinished = true
-                                                                    } catch {
-                                                                        statusText = "解压时出现错误"
+                                    let resumeData = UserDefaults.standard.data(forKey: "UpdateDownloadResumeData")
+                                    if resumeData != nil {
+                                        AF.download(resumingWith: resumeData!, to: destination)
+                                            .downloadProgress { p in
+                                                downloadProgress = p.fractionCompleted
+                                                downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
+                                            }
+                                            .response { r in
+                                                if r.error == nil, let filePath = r.fileURL?.path {
+                                                    debugPrint(filePath)
+                                                    statusText = "验证下载档案中..."
+                                                    if let fMd5 = fileMD5(url: URL(fileURLWithPath: filePath)) {
+                                                        DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/fmd5") { respStr, isSuccess in
+                                                            if isSuccess {
+                                                                if respStr.apiFixed() == fMd5 {
+                                                                    statusText = "正在解压..."
+                                                                    Task {
+                                                                        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                                                                        let fileURL = documentsURL.appendingPathComponent("res/")
+                                                                        do {
+                                                                            try SSZipArchive.unzipFile(atPath: filePath, toDestination: fileURL.path, overwrite: true, password: nil)
+                                                                            isFinished = true
+                                                                            resVersion = serverVer
+                                                                            UIApplication.shared.isIdleTimerDisabled = false
+                                                                        } catch {
+                                                                            statusText = "解压时出现错误"
+                                                                        }
                                                                     }
+                                                                } else {
+                                                                    statusText = "档案摘要值不正确,正在重启下载..."
                                                                 }
                                                             } else {
-                                                                statusText = "档案摘要值不正确,正在重启下载..."
+                                                                statusText = "获取在线校验摘要时出错"
                                                             }
-                                                        } else {
-                                                            statusText = "获取在线校验摘要时出错"
                                                         }
+                                                    } else {
+                                                        statusText = "无法获取档案校验摘要"
                                                     }
                                                 } else {
-                                                    statusText = "无法获取档案校验摘要"
+                                                    statusText = "下载失败"
+                                                    UserDefaults.standard.set(r.resumeData, forKey: "UpdateDownloadResumeData")
                                                 }
                                             }
-                                        }
+                                    } else {
+                                        AF.download(downloadLink, to: destination)
+                                            .downloadProgress { p in
+                                                downloadProgress = p.fractionCompleted
+                                                downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
+                                            }
+                                            .response { r in
+                                                if r.error == nil, let filePath = r.fileURL?.path {
+                                                    debugPrint(filePath)
+                                                    statusText = "验证下载档案中..."
+                                                    if let fMd5 = fileMD5(url: URL(fileURLWithPath: filePath)) {
+                                                        DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/fmd5") { respStr, isSuccess in
+                                                            if isSuccess {
+                                                                if respStr.apiFixed() == fMd5 {
+                                                                    statusText = "正在解压..."
+                                                                    Task {
+                                                                        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                                                                        let fileURL = documentsURL.appendingPathComponent("res/")
+                                                                        do {
+                                                                            try SSZipArchive.unzipFile(atPath: filePath, toDestination: fileURL.path, overwrite: true, password: nil)
+                                                                            isFinished = true
+                                                                            resVersion = serverVer
+                                                                        } catch {
+                                                                            statusText = "解压时出现错误"
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    statusText = "档案摘要值不正确,正在重启下载..."
+                                                                }
+                                                            } else {
+                                                                statusText = "获取在线校验摘要时出错"
+                                                            }
+                                                        }
+                                                    } else {
+                                                        statusText = "无法获取档案校验摘要"
+                                                    }
+                                                } else {
+                                                    statusText = "下载失败"
+                                                    UserDefaults.standard.set(r.resumeData, forKey: "UpdateDownloadResumeData")
+                                                }
+                                            }
+                                    }
                                 } else {
                                     statusText = "无法获取更新链接"
                                 }
