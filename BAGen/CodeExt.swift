@@ -9,10 +9,18 @@ import SwiftUI
 import DarockKit
 import Foundation
 
-@ViewBuilder func BAText(_ text: String, fontSize: CGFloat = 18) -> some View {
-    let pedStr = drawOutlineAttributedString(string: text, fontSize: fontSize, alignment: .left, textColor: UIColor(Color(hex: 0x27394F)), strokeWidth: -1.5, widthColor: .white)
-    Text("\(pedStr)")
-        .font(.custom("MainFont_Bold", size: fontSize))
+@ViewBuilder func BAText(_ text: String, fontSize: CGFloat = 18, textColor: Color = Color(hex: 0x27394F), isSystemd: Bool = false, isBold: Bool = true) -> some View {
+    if !isSystemd {
+        let pedStr = drawOutlineAttributedString(string: text, fontSize: fontSize, alignment: .left, textColor: UIColor(textColor), strokeWidth: -1.5, widthColor: .white)
+        Text("\(pedStr)")
+            .font(.custom("GyeonggiTitle", size: fontSize))
+            .fontWeight(.bold)
+    } else {
+        Text(text)
+            .font(.custom("GyeonggiTitle", size: fontSize))
+            .fontWeight(isBold ? .bold : .regular)
+            .foregroundColor(textColor)
+    }
 }
 private func drawOutlineAttributedString(
     string: String,
@@ -21,18 +29,119 @@ private func drawOutlineAttributedString(
     textColor: UIColor,
     strokeWidth: CGFloat,
     widthColor: UIColor) -> NSAttributedString {
-    let paragraph = NSMutableParagraphStyle()
-    paragraph.alignment = alignment
-    paragraph.lineHeightMultiple = 0.93
-    let dic: [NSAttributedString.Key: Any] = [
-        NSAttributedString.Key.font: UIFont.systemFont(ofSize: fontSize),
-        NSAttributedString.Key.paragraphStyle: paragraph,
-        NSAttributedString.Key.foregroundColor: textColor,
-        NSAttributedString.Key.strokeWidth: strokeWidth,
-        NSAttributedString.Key.strokeColor: widthColor,
-        NSAttributedString.Key.kern: 1
-    ]
-    var attributedText: NSMutableAttributedString!
-    attributedText = NSMutableAttributedString(string: string, attributes: dic)
-    return attributedText
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = alignment
+        paragraph.lineHeightMultiple = 0.93
+        let font = UIFont(name: "GyeonggiTitle", size: fontSize)!
+        let boldFontDescriptor = font.fontDescriptor.withSymbolicTraits(.traitBold)!
+        let boldFont = UIFont(descriptor: boldFontDescriptor, size: fontSize)
+        let dic: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.font: boldFont,
+            NSAttributedString.Key.paragraphStyle: paragraph,
+            NSAttributedString.Key.foregroundColor: textColor,
+            NSAttributedString.Key.strokeWidth: strokeWidth,
+            NSAttributedString.Key.strokeColor: widthColor,
+            NSAttributedString.Key.kern: 1
+        ]
+        var attributedText: NSMutableAttributedString!
+        attributedText = NSMutableAttributedString(string: string, attributes: dic)
+        return attributedText
+}
+
+@ViewBuilder func BAButton(action: @escaping () -> Void, label: String, isHighlighted: Bool = false) -> some View {
+    ZStack(alignment: .center) {
+        Image(isHighlighted ? "HighlightButtonImage" : "ButtonImage")
+            .shadow(color: .black.opacity(0.9), radius: 3, x: 1, y: 2)
+        BAText(label, fontSize: 20)
+    }
+    .onTapGesture {
+        action()
+    }
+}
+
+@ViewBuilder func BATopBar(backAction: (() -> Void)? = nil, navigationTitle: String? = nil) -> some View {
+    ZStack {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color(hex: 0xF7F9F9))
+            .frame(height: 40)
+            .shadow(color: .black.opacity(0.8), radius: 2, x: 1, y: 2)
+        HStack {
+            Image("TopBarLeftImage")
+                .resizable()
+                .frame(width: 150, height: 40)
+                .cornerRadius(8)
+            Spacer()
+        }
+        HStack {
+            Spacer()
+                .frame(width: 30)
+            if let bac = backAction {
+                Button(action: {
+                    bac()
+                }, label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: 0x3D578D))
+                            .frame(width: 35, height: 35)
+                        Image(systemName: "arrow.left")
+                            .foregroundColor(.white)
+                    }
+                })
+                .offset(y: 5)
+            }
+            if let nt = navigationTitle {
+                BAText(nt, fontSize: 18, isSystemd: true)
+            }
+            Spacer()
+            Group {
+                Image("ActionPointImage")
+                    .resizable()
+                    .frame(width: 12, height: 20)
+                BAText("114/114", fontSize: 16, isSystemd: true, isBold: false)
+                Image(systemName: "plus")
+                    .font(.system(size: 20))
+                    .foregroundColor(Color(hex: 0x5BCDFE))
+                Text("/")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color(hex: 0xD0D4D9))
+            }
+            Group {
+                Image("CMoneyImage")
+                    .resizable()
+                    .frame(width: 25, height: 20)
+                BAText("10,224,509", fontSize: 16, isSystemd: true, isBold: false)
+                Image(systemName: "plus")
+                    .font(.system(size: 20))
+                    .foregroundColor(Color(hex: 0x5BCDFE))
+                Text("/")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color(hex: 0xD0D4D9))
+            }
+            Group {
+                Image("CyanStoneImage")
+                    .resizable()
+                    .frame(width: 17, height: 20)
+                BAText("12,345", fontSize: 16, isSystemd: true, isBold: false)
+                Image(systemName: "plus")
+                    .font(.system(size: 20))
+                    .foregroundColor(Color(hex: 0x5BCDFE))
+                Text("/")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color(hex: 0xD0D4D9))
+            }
+            Button(action: {
+                
+            }, label: {
+                Image(systemName: "gearshape.fill")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(Color(hex: 0x3D578D))
+            })
+            Spacer()
+                .frame(width: 10)
+        }
+        .offset(y: 5)
+    }
+    .frame(height: 40)
+    .offset(y: -30)
 }

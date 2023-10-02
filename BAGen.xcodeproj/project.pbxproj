@@ -209,6 +209,9 @@
 		6B308CC92AC9A36F00CE68B6 /* SFX_Emoticon_Motion_Bulb.wav in Resources */ = {isa = PBXBuildFile; fileRef = 6B307FF92AC9A36A00CE68B6 /* SFX_Emoticon_Motion_Bulb.wav */; };
 		6B308CCA2AC9A36F00CE68B6 /* SFX_Emoticon_Motion_Dot.wav in Resources */ = {isa = PBXBuildFile; fileRef = 6B307FFA2AC9A36A00CE68B6 /* SFX_Emoticon_Motion_Dot.wav */; };
 		6B308CCB2AC9A36F00CE68B6 /* SFX_Emoticon_Motion_Sad.wav in Resources */ = {isa = PBXBuildFile; fileRef = 6B307FFB2AC9A36A00CE68B6 /* SFX_Emoticon_Motion_Sad.wav */; };
+		6B36D1462ACADF8B0012CF1B /* TypeChooseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B36D1452ACADF8B0012CF1B /* TypeChooseView.swift */; };
+		6B36D1482ACAEE3A0012CF1B /* FSEditChooserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B36D1472ACAEE3A0012CF1B /* FSEditChooserView.swift */; };
+		6B36D14A2ACAF1D40012CF1B /* AppFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B36D1492ACAF1D40012CF1B /* AppFileManager.swift */; };
 		6BB01EBB2AC9B54C00460189 /* Emoji_7.png in Resources */ = {isa = PBXBuildFile; fileRef = 6BB01B6A2AC9B54700460189 /* Emoji_7.png */; };
 		6BB01EBF2AC9B54C00460189 /* Emoji_0.png in Resources */ = {isa = PBXBuildFile; fileRef = 6BB01B6E2AC9B54700460189 /* Emoji_0.png */; };
 		6BB01EC22AC9B54C00460189 /* Emoji_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 6BB01B712AC9B54700460189 /* Emoji_1.png */; };
@@ -846,6 +849,9 @@
 		6B307FF92AC9A36A00CE68B6 /* SFX_Emoticon_Motion_Bulb.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = SFX_Emoticon_Motion_Bulb.wav; sourceTree = "<group>"; };
 		6B307FFA2AC9A36A00CE68B6 /* SFX_Emoticon_Motion_Dot.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = SFX_Emoticon_Motion_Dot.wav; sourceTree = "<group>"; };
 		6B307FFB2AC9A36A00CE68B6 /* SFX_Emoticon_Motion_Sad.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = SFX_Emoticon_Motion_Sad.wav; sourceTree = "<group>"; };
+		6B36D1452ACADF8B0012CF1B /* TypeChooseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeChooseView.swift; sourceTree = "<group>"; };
+		6B36D1472ACAEE3A0012CF1B /* FSEditChooserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSEditChooserView.swift; sourceTree = "<group>"; };
+		6B36D1492ACAF1D40012CF1B /* AppFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppFileManager.swift; sourceTree = "<group>"; };
 		6BB01B6A2AC9B54700460189 /* Emoji_7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Emoji_7.png; sourceTree = "<group>"; };
 		6BB01B6E2AC9B54700460189 /* Emoji_0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Emoji_0.png; sourceTree = "<group>"; };
 		6BB01B712AC9B54700460189 /* Emoji_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Emoji_1.png; sourceTree = "<group>"; };
@@ -2012,9 +2018,12 @@
 			children = (
 				6B167ADF2AC9D595006E635F /* Info.plist */,
 				6BD5A63E2AC98932004B05F9 /* BAGen.entitlements */,
+				6B36D1492ACAF1D40012CF1B /* AppFileManager.swift */,
 				6BB0220A2AC9B67900460189 /* CodeExt.swift */,
 				6BD5A62D2AC988E6004B05F9 /* BAGenApp.swift */,
 				6BD5A62F2AC988E6004B05F9 /* ContentView.swift */,
+				6B36D1452ACADF8B0012CF1B /* TypeChooseView.swift */,
+				6B36D1472ACAEE3A0012CF1B /* FSEditChooserView.swift */,
 				6BD5A6312AC988E7004B05F9 /* Assets.xcassets */,
 				6BD5A6332AC988E7004B05F9 /* Preview Content */,
 			);
@@ -2744,8 +2753,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				6BD5A6302AC988E6004B05F9 /* ContentView.swift in Sources */,
+				6B36D14A2ACAF1D40012CF1B /* AppFileManager.swift in Sources */,
+				6B36D1462ACADF8B0012CF1B /* TypeChooseView.swift in Sources */,
 				6BB0220B2AC9B67900460189 /* CodeExt.swift in Sources */,
 				6BD5A62E2AC988E6004B05F9 /* BAGenApp.swift in Sources */,
+				6B36D1482ACAEE3A0012CF1B /* FSEditChooserView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2884,6 +2896,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BAGen/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SwiftArchive;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -2920,6 +2933,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BAGen/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SwiftArchive;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

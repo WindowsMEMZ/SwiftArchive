@@ -9,5 +9,10 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>MainFont.ttf</string>
+		<string>MainFont_Bold.ttf</string>
+	</array>
 </dict>
 </plist>
