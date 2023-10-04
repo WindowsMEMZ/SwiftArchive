@@ -10,12 +10,17 @@ import SwiftUI
 
 var debugConsoleText = ""
 var nowScene = NowScene.Intro
+var fsEnterProjName = ""
+var isGlobalAlertPresented = false
+var globalAlertContent: (() -> AnyView)?
 
 @main
 struct BAGenApp: App {
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @State var debugConsoleContent = ""
     @State var nowMainScene = NowScene.Intro
+    @State var isAlertPresented = false
+    @State var alertContent: (() -> AnyView)? = nil
     var body: some Scene {
         WindowGroup {
             Group {
@@ -25,6 +30,8 @@ struct BAGenApp: App {
                         .onAppear {
                             Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
                                 nowMainScene = nowScene
+                                isAlertPresented = isGlobalAlertPresented
+                                alertContent = globalAlertContent
                             }
                         }
                 case .TypeChoose:
@@ -32,11 +39,43 @@ struct BAGenApp: App {
                 case .FSEditChooser:
                     FSEditChooserView()
                 case .FSEditor:
-                    EmptyView()
+                    FSEditorView()
                 case .MTEditChooser:
                     EmptyView()
                 case .MTEditor:
                     EmptyView()
+                }
+            }
+            .overlay {
+                if isAlertPresented, let content = globalAlertContent {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(hex: 0xECECEC))
+                            .frame(width: 350, height: 260)
+                        VStack {
+                            HStack {
+                                Image("PopupTopBarImage")
+                                Spacer()
+                                Button(action: {
+                                    isGlobalAlertPresented = false
+                                    globalAlertContent = nil
+                                }, label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(Color(hex: 0x283D59))
+                                })
+                                .padding(.horizontal, 5)
+                            }
+                            Spacer()
+                            Image("PopupBackgroundImage")
+                        }
+                        VStack {
+                            Spacer()
+                                .frame(height: 40)
+                            content()
+                        }
+                    }
+                    .frame(width: 350, height: 260)
                 }
             }
 //                .overlay(alignment: .topTrailing) {
@@ -81,8 +120,34 @@ func ChangeScene(to sceneName: NowScene) {
 class AppDelegate: NSObject, UIApplicationDelegate {
     func applicationDidFinishLaunching(_ application: UIApplication) {
         UIApplication.shared.isIdleTimerDisabled = true
-//        signal(SIGABRT, { c in
-//
-//        })
+        signal(SIGABRT, { c in
+            CrashHander(signalStr: "SIGABRT", signalCode: c)
+        })
     }
+}
+
+func CrashHander(signalStr: String, signalCode: Int32) {
+    var fullTrack = """
+    -------------------------------------
+    Translated Report (Full Report Below)
+    -------------------------------------
+    
+    Incident Identifier: \(UUID().uuidString)
+    Hardware Model:      \(UIDevice.current.model)
+    Process:             \(ProcessInfo.processInfo.processName) [\(ProcessInfo.processInfo.processIdentifier)]
+    Version:             \(Bundle.main.infoDictionary!["CFBundleShortVersionString"]! as! String)
+    
+    Date/Time:           \({ () -> String in
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd hh:mm:ss"
+        return df.string(from: Date())
+    }())
+    OS Version:          \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)
+    Report Version:      1
+    
+    Exception Type:  (\(signalStr))
+    Termination Reason: (\(signalStr) \(signalCode))
+    
+    
+    """
 }

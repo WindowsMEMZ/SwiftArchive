@@ -48,11 +48,12 @@ private func drawOutlineAttributedString(
         return attributedText
 }
 
-@ViewBuilder func BAButton(action: @escaping () -> Void, label: String, isHighlighted: Bool = false) -> some View {
+@ViewBuilder func BAButton(action: @escaping () -> Void, label: String, isHighlighted: Bool = false, isSmallStyle: Bool = false) -> some View {
     ZStack(alignment: .center) {
         Image(isHighlighted ? "HighlightButtonImage" : "ButtonImage")
+            .scaleEffect(isSmallStyle ? 0.7 : 1)
             .shadow(color: .black.opacity(0.9), radius: 3, x: 1, y: 2)
-        BAText(label, fontSize: 20)
+        BAText(label, fontSize: isSmallStyle ? 16 : 20)
     }
     .onTapGesture {
         action()

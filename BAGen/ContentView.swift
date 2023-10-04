@@ -12,6 +12,8 @@ import Alamofire
 import ZipArchive
 import CommonCrypto
 
+let globalAppVersion = 100
+
 struct ContentView: View {
     @AppStorage("ResVersion") var resVersion = 0
     @AppStorage("FinishedDownloadVer") var finishedDownloadVer = 0 // After Download(But not finished unzip), Set this to serverVer
@@ -59,10 +61,10 @@ struct ContentView: View {
                             .onAppear {
                                 loadingImageRotation = -360
                             }
-                        BAText(statusText)
+                        BAText(statusText, fontSize: 16)
                         Spacer()
                         if isDownloading {
-                            BAText(downloadProgressText)
+                            BAText(downloadProgressText, fontSize: 16)
                         }
                     }
                     if isDownloading {
@@ -80,62 +82,76 @@ struct ContentView: View {
         }
         .onAppear {
             bgAvplayer.play()
-            bgAudioPlayer?.volume = 1.0
+            bgAudioPlayer?.volume = 0.9
             bgAudioPlayer?.numberOfLoops = -1
             bgAudioPlayer?.play()
             
-            DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/check") { respStr, isSuccess in
+            DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/app/check") { respStr, isSuccess in
                 if isSuccess {
-                    if let serverVer = Int(respStr) {
-                        if resVersion < serverVer {
-                            if finishedDownloadVer >= serverVer, let filePath = UserDefaults.standard.string(forKey: "WaitToUnzipFilePath") {
-                                UnzipArchive(filePath: filePath, serverVer: serverVer)
-                            } else {
-                                statusText = "正在准备更新..."
-                                DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/link") { respStr, isSuccess in
-                                    if isSuccess {
-                                        isDownloading = true
-                                        statusText = "正在下载更新..."
-                                        let downloadLink = respStr.apiFixed()
-                                        let destination: DownloadRequest.Destination = { _, _ in
-                                            let documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-                                            let fileURL = documentsURL.appendingPathComponent("res\(serverVer).zip")
-                                            
-                                            return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
-                                        }
-                                        let resumeData = UserDefaults.standard.data(forKey: "UpdateDownloadResumeData")
-                                        if resumeData != nil {
-                                            AF.download(resumingWith: resumeData!, to: destination)
-                                                .downloadProgress { p in
-                                                    downloadProgress = p.fractionCompleted
-                                                    downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
+                    if let serverAppVer = Int(respStr) {
+                        if serverAppVer <= globalAppVersion {
+                            DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/check") { respStr, isSuccess in
+                                if isSuccess {
+                                    if let serverVer = Int(respStr) {
+                                        if resVersion < serverVer {
+                                            if finishedDownloadVer >= serverVer, let filePath = UserDefaults.standard.string(forKey: "WaitToUnzipFilePath") {
+                                                UnzipArchive(filePath: filePath, serverVer: serverVer)
+                                            } else {
+                                                statusText = "正在准备更新..."
+                                                DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/link") { respStr, isSuccess in
+                                                    if isSuccess {
+                                                        isDownloading = true
+                                                        statusText = "正在下载更新..."
+                                                        let downloadLink = respStr.apiFixed()
+                                                        let destination: DownloadRequest.Destination = { _, _ in
+                                                            let documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+                                                            let fileURL = documentsURL.appendingPathComponent("res\(serverVer).zip")
+                                                            
+                                                            return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
+                                                        }
+                                                        let resumeData = UserDefaults.standard.data(forKey: "UpdateDownloadResumeData\(serverVer)")
+                                                        if resumeData != nil {
+                                                            debugPrint("Resume Downloading...")
+                                                            AF.download(resumingWith: resumeData!, to: destination)
+                                                                .downloadProgress { p in
+                                                                    downloadProgress = p.fractionCompleted
+                                                                    downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
+                                                                }
+                                                                .response { r in
+                                                                    DownloadResponseHander(r, serverVer: serverVer)
+                                                                }
+                                                        } else {
+                                                            debugPrint("Start a New Downloading...")
+                                                            AF.download(downloadLink, to: destination)
+                                                                .downloadProgress { p in
+                                                                    downloadProgress = p.fractionCompleted
+                                                                    downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
+                                                                }
+                                                                .response { r in
+                                                                    DownloadResponseHander(r, serverVer: serverVer)
+                                                                }
+                                                        }
+                                                    } else {
+                                                        statusText = "无法获取更新链接"
+                                                    }
                                                 }
-                                                .response { r in
-                                                    DownloadResponseHander(r, serverVer: serverVer)
-                                                }
+                                            }
                                         } else {
-                                            AF.download(downloadLink, to: destination)
-                                                .downloadProgress { p in
-                                                    downloadProgress = p.fractionCompleted
-                                                    downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
-                                                }
-                                                .response { r in
-                                                    DownloadResponseHander(r, serverVer: serverVer)
-                                                }
+                                            isFinished = true
                                         }
                                     } else {
-                                        statusText = "无法获取更新链接"
+                                        statusText = "检查更新时出现错误"
                                     }
+                                } else {
+                                    statusText = "检查更新时出现错误"
                                 }
                             }
                         } else {
-                            isFinished = true
+                            statusText = "需要更新客户端"
                         }
                     } else {
                         statusText = "检查更新时出现错误"
                     }
-                } else {
-                    statusText = "检查更新时出现错误"
                 }
             }
         }
@@ -163,7 +179,7 @@ struct ContentView: View {
             }
         } else {
             statusText = "下载失败"
-            UserDefaults.standard.set(r.resumeData, forKey: "UpdateDownloadResumeData")
+            UserDefaults.standard.set(r.resumeData, forKey: "UpdateDownloadResumeData\(serverVer)")
         }
     }
     func UnzipArchive(filePath: String, serverVer: Int) {
