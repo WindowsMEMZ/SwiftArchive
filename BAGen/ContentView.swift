@@ -33,7 +33,8 @@ struct ContentView: View {
                 HStack {
                     Spacer()
                     BAButton(action: {
-                        resVersion = 100
+//                        resVersion = 100
+                        nowScene = .EachCharacters
                     }, label: "Test")
                 }
                 Spacer()

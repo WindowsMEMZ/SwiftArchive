@@ -18,6 +18,7 @@
 		6BD5A6322AC988E7004B05F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BD5A6312AC988E7004B05F9 /* Assets.xcassets */; };
 		6BD5A6352AC988E7004B05F9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BD5A6342AC988E7004B05F9 /* Preview Assets.xcassets */; };
 		6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6BD5A63C2AC98912004B05F9 /* DarockKit */; };
+		8C42796A2ACD9DB4007A367C /* EachCharactersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4279692ACD9DB4007A367C /* EachCharactersView.swift */; };
 		8CCFEBE52ACD16B4003ADFEA /* Theme_01.wav in Resources */ = {isa = PBXBuildFile; fileRef = 8CCFEBE42ACD16B4003ADFEA /* Theme_01.wav */; };
 		8CCFEBE72ACD16BE003ADFEA /* title.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 8CCFEBE62ACD16BE003ADFEA /* title.mp4 */; };
 		8CCFEBF52ACD1931003ADFEA /* NotoSansSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8CCFEBE92ACD1931003ADFEA /* NotoSansSC-Regular.otf */; };
@@ -49,6 +50,7 @@
 		6BD5A6342AC988E7004B05F9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		6BD5A63E2AC98932004B05F9 /* BAGen.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BAGen.entitlements; sourceTree = "<group>"; };
 		6BD5A63F2AC991C9004B05F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		8C4279692ACD9DB4007A367C /* EachCharactersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EachCharactersView.swift; sourceTree = "<group>"; };
 		8CCFEBE42ACD16B4003ADFEA /* Theme_01.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = Theme_01.wav; path = Res/BuiltIn/AudioClip/Theme_01.wav; sourceTree = SOURCE_ROOT; };
 		8CCFEBE62ACD16BE003ADFEA /* title.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = title.mp4; path = Res/BuiltIn/VideoClip/title.mp4; sourceTree = SOURCE_ROOT; };
 		8CCFEBE92ACD1931003ADFEA /* NotoSansSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Regular.otf"; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 				6B36D1472ACAEE3A0012CF1B /* FSEditChooserView.swift */,
 				6B36D14B2ACAFFDB0012CF1B /* FSEditorView.swift */,
 				8CCFEC012ACD361A003ADFEA /* PathFileChooserView.swift */,
+				8C4279692ACD9DB4007A367C /* EachCharactersView.swift */,
 				6BD5A6312AC988E7004B05F9 /* Assets.xcassets */,
 				6BD5A6332AC988E7004B05F9 /* Preview Content */,
 			);
@@ -248,6 +251,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6BD5A6302AC988E6004B05F9 /* ContentView.swift in Sources */,
+				8C42796A2ACD9DB4007A367C /* EachCharactersView.swift in Sources */,
 				6B36D14A2ACAF1D40012CF1B /* AppFileManager.swift in Sources */,
 				6B36D1462ACADF8B0012CF1B /* TypeChooseView.swift in Sources */,
 				6BB0220B2AC9B67900460189 /* CodeExt.swift in Sources */,

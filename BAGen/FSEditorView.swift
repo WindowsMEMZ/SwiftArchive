@@ -52,6 +52,8 @@ import SwiftUI
 
 struct FSEditorView: View {
     var projName: String = fsEnterProjName
+    @Environment(\.colorScheme) var colorScheme
+    @State var isFirstLoaded = false
     @State var fullFileContent = ""
     @State var fullProjData: FSBase.FullPageData? = nil
     @State var currentPage = 0
@@ -63,6 +65,9 @@ struct FSEditorView: View {
     @State var bgPathFileChooserReturnPathCache = ""
     @State var isBgMusicPathFileChooserPresented = false
     @State var bgMusicPathFileChooserReturnPathCache = ""
+    @State var isAddCharacterPresented = false
+    /// Add Character
+    ///
     var body: some View {
         ZStack {
             if fullProjData != nil {
@@ -172,8 +177,45 @@ struct FSEditorView: View {
                                                 if bgMusicPathFileChooserReturnPathCache != "" {
                                                     fullProjData!.pages[currentPage].bgMusicPath = bgMusicPathFileChooserReturnPathCache
                                                     bgMusicPathFileChooserReturnPathCache = ""
+                                                    if fullProjData!.pages[currentPage].bgMusicPath != nil {
+                                                        bgAudioPlayer = try! AVAudioPlayer(contentsOf: URL(fileURLWithPath: fullProjData!.pages[currentPage].bgMusicPath!))
+                                                        bgAudioPlayer?.numberOfLoops = -1
+                                                        bgAudioPlayer?.play()
+                                                    }
                                                 }
                                             }, content: {PathFileChooserView(path: "res/defaultlocalgroup_assets_audio/bgm", previewType: .music, returnPath: $bgMusicPathFileChooserReturnPathCache)})
+                                        }
+                                        HStack {
+                                            VStack {
+                                                Spacer()
+                                                    .frame(height: 10)
+                                                Text("人物")
+                                                    .font(.system(size: 20, weight: .bold))
+                                            }
+                                            Spacer()
+                                        }
+                                        if fullProjData!.pages[currentPage].characters != nil && fullProjData!.pages[currentPage].characters?.count != 0 {
+                                            
+                                        } else {
+                                            Button(action: {
+                                                isAddCharacterPresented = true
+                                            }, label: {
+                                                Text("添加角色")
+                                                    .bold()
+                                                    .foregroundColor(.blue)
+                                            })
+                                            .sheet(isPresented: $isAddCharacterPresented, onDismiss: {
+                                                
+                                            }, content: {
+                                                VStack {
+                                                    Text("添加角色")
+                                                        .font(.system(size: 24, weight: .bold))
+                                                    Text("初始化")
+                                                        .font(.system(size: 20, weight: .bold))
+                                                    
+                                                }
+                                                .foregroundColor(colorScheme == .dark ? .white : .black)
+                                            })
                                         }
                                     }
                                     .foregroundColor(.white)
@@ -195,15 +237,18 @@ struct FSEditorView: View {
         }
         .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
         .onAppear {
-            fullFileContent = try! String(contentsOfFile: AppFileManager(path: "FSProj").GetFilePath(name: projName).path)
-            fullProjData = FSBase().ToFullData(byString: fullFileContent)
-            if fullProjData?.pages.count != 0 {
-                if let bgMusicPath = fullProjData!.pages[currentPage].bgMusicPath {
-                    debugPrint(bgMusicPath)
-                    bgAudioPlayer = try! AVAudioPlayer(contentsOf: URL(string: bgMusicPath)!)
-                    bgAudioPlayer?.numberOfLoops = -1
-                    bgAudioPlayer?.play()
+            if !isFirstLoaded {
+                fullFileContent = try! String(contentsOfFile: AppFileManager(path: "FSProj").GetFilePath(name: projName).path)
+                fullProjData = FSBase().ToFullData(byString: fullFileContent)
+                if fullProjData?.pages.count != 0 {
+                    if let bgMusicPath = fullProjData!.pages[currentPage].bgMusicPath {
+                        debugPrint(bgMusicPath)
+                        bgAudioPlayer = try! AVAudioPlayer(contentsOf: URL(fileURLWithPath: bgMusicPath))
+                        bgAudioPlayer?.numberOfLoops = -1
+                        bgAudioPlayer?.play()
+                    }
                 }
+                isFirstLoaded = true
             }
         }
     }

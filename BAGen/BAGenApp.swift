@@ -44,6 +44,8 @@ struct BAGenApp: App {
                     EmptyView()
                 case .MTEditor:
                     EmptyView()
+                case .EachCharacters:
+                    EachCharactersView.Serika()
                 }
             }
             .overlay {
@@ -111,6 +113,7 @@ enum NowScene {
     case FSEditor
     case MTEditChooser
     case MTEditor
+    case EachCharacters
 }
 
 func ChangeScene(to sceneName: NowScene) {
