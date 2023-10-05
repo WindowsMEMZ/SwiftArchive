@@ -15,7 +15,7 @@
       "location" : "https://github.com/Darock-Studio/DarockKit",
       "state" : {
         "branch" : "main",
-        "revision" : "499717dec7a355e9bbeaee4dec7072f52aa0c904"
+        "revision" : "5b1b1ccc2ae61ec779a8bac977cd006df073c0c6"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ZipArchive/ZipArchive",
       "state" : {
-        "revision" : "b56f8c605a233fb25fe8d49f1b9ed50912c2d1b7",
-        "version" : "2.5.4"
+        "revision" : "79d4dc9729096c6ad83dd3cee2b9f354d1b4ab7b",
+        "version" : "2.5.5"
       }
     }
   ],

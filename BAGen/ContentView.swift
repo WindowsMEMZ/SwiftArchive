@@ -16,7 +16,7 @@ let globalAppVersion = 100
 
 struct ContentView: View {
     @AppStorage("ResVersion") var resVersion = 0
-    @AppStorage("FinishedDownloadVer") var finishedDownloadVer = 0 // After Download(But not finished unzip), Set this to serverVer
+    @AppStorage("FinishedDownloadVer") var finishedDownloadVer = 0 // After Download(But not finish unzip), Set this to serverVer
     let bgAvplayer = AVPlayer(url: Bundle.main.url(forResource: "title", withExtension: "mp4")!)
     let bgAudioPlayer = try? AVAudioPlayer(contentsOf: Bundle.main.url(forResource: "Theme_01", withExtension: "wav")!)
     @State var statusText = "正在检查更新..."
@@ -53,24 +53,24 @@ struct ContentView: View {
                     Spacer()
                 }
                 if !isFinished {
+                    if isDownloading {
+                        ProgressView(value: downloadProgress, total: 1.0)
+                            .progressViewStyle(CustomProgressBarStyle())
+                    }
                     HStack {
                         Image("LoadingImage")
                             .resizable()
-                            .frame(width: 20, height: 20)
+                            .frame(width: 13, height: 13)
                             .rotationEffect(.degrees(loadingImageRotation))
                             .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: loadingImageRotation)
                             .onAppear {
                                 loadingImageRotation = -360
                             }
-                        BAText(statusText, fontSize: 16)
+                        BAText(statusText, fontSize: 12)
                         Spacer()
                         if isDownloading {
-                            BAText(downloadProgressText, fontSize: 16)
+                            BAText(downloadProgressText, fontSize: 12)
                         }
-                    }
-                    if isDownloading {
-                        ProgressView(value: downloadProgress, total: 1.0)
-                            .progressViewStyle(CustomProgressBarStyle())
                     }
                 }
             }
@@ -98,44 +98,7 @@ struct ContentView: View {
                                             if finishedDownloadVer >= serverVer, let filePath = UserDefaults.standard.string(forKey: "WaitToUnzipFilePath") {
                                                 UnzipArchive(filePath: filePath, serverVer: serverVer)
                                             } else {
-                                                statusText = "正在准备更新..."
-                                                DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/link") { respStr, isSuccess in
-                                                    if isSuccess {
-                                                        isDownloading = true
-                                                        statusText = "正在下载更新..."
-                                                        let downloadLink = respStr.apiFixed()
-                                                        let destination: DownloadRequest.Destination = { _, _ in
-                                                            let documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-                                                            let fileURL = documentsURL.appendingPathComponent("res\(serverVer).zip")
-                                                            
-                                                            return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
-                                                        }
-                                                        let resumeData = UserDefaults.standard.data(forKey: "UpdateDownloadResumeData\(serverVer)")
-                                                        if resumeData != nil {
-                                                            debugPrint("Resume Downloading...")
-                                                            AF.download(resumingWith: resumeData!, to: destination)
-                                                                .downloadProgress { p in
-                                                                    downloadProgress = p.fractionCompleted
-                                                                    downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
-                                                                }
-                                                                .response { r in
-                                                                    DownloadResponseHander(r, serverVer: serverVer)
-                                                                }
-                                                        } else {
-                                                            debugPrint("Start a New Downloading...")
-                                                            AF.download(downloadLink, to: destination)
-                                                                .downloadProgress { p in
-                                                                    downloadProgress = p.fractionCompleted
-                                                                    downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% (\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB)"
-                                                                }
-                                                                .response { r in
-                                                                    DownloadResponseHander(r, serverVer: serverVer)
-                                                                }
-                                                        }
-                                                    } else {
-                                                        statusText = "无法获取更新链接"
-                                                    }
-                                                }
+                                                StartDownload(serverVer: serverAppVer)
                                             }
                                         } else {
                                             isFinished = true
@@ -157,6 +120,46 @@ struct ContentView: View {
             }
         }
     }
+    func StartDownload(serverVer: Int) {
+        statusText = "正在准备更新..."
+        DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/link") { respStr, isSuccess in
+            if isSuccess {
+                isDownloading = true
+                statusText = "正在更新..."
+                let downloadLink = respStr.apiFixed()
+                let destination: DownloadRequest.Destination = { _, _ in
+                    let documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+                    let fileURL = documentsURL.appendingPathComponent("res\(serverVer).zip")
+                    
+                    return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
+                }
+                let resumeData = UserDefaults.standard.data(forKey: "UpdateDownloadResumeData\(serverVer)")
+                if resumeData != nil {
+                    debugPrint("Resume Downloading...")
+                    AF.download(resumingWith: resumeData!, to: destination)
+                        .downloadProgress { p in
+                            downloadProgress = p.fractionCompleted
+                            downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% [\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB]"
+                        }
+                        .response { r in
+                            DownloadResponseHander(r, serverVer: serverVer)
+                        }
+                } else {
+                    debugPrint("Start a New Downloading...")
+                    AF.download(downloadLink, to: destination)
+                        .downloadProgress { p in
+                            downloadProgress = p.fractionCompleted
+                            downloadProgressText = "\(String(format: "%.2f", downloadProgress * 100))% [\(String(format: "%.2f", Double(p.completedUnitCount) / 1024 / 1024))MB / \(String(format: "%.2f", Double(p.totalUnitCount) / 1024 / 1024))MB]"
+                        }
+                        .response { r in
+                            DownloadResponseHander(r, serverVer: serverVer)
+                        }
+                }
+            } else {
+                statusText = "无法获取更新链接"
+            }
+        }
+    }
     func DownloadResponseHander(_ r: AFDownloadResponse<URL?>, serverVer: Int) {
         if r.error == nil, let filePath = r.fileURL?.path {
             debugPrint(filePath)
@@ -170,6 +173,8 @@ struct ContentView: View {
                             UnzipArchive(filePath: filePath, serverVer: serverVer)
                         } else {
                             statusText = "档案摘要值不正确,正在重启下载..."
+                            UserDefaults.standard.removeObject(forKey: "UpdateDownloadResumeData\(serverVer)")
+                            StartDownload(serverVer: serverVer)
                         }
                     } else {
                         statusText = "获取在线校验摘要时出错"

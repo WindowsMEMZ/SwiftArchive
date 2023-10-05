@@ -11,6 +11,7 @@ import SwiftUI
 var debugConsoleText = ""
 var nowScene = NowScene.Intro
 var fsEnterProjName = ""
+var mtEnterProjName = ""
 var isGlobalAlertPresented = false
 var globalAlertContent: (() -> AnyView)?
 
@@ -41,9 +42,9 @@ struct BAGenApp: App {
                 case .FSEditor:
                     FSEditorView()
                 case .MTEditChooser:
-                    EmptyView()
+                    MTEditChooserView()
                 case .MTEditor:
-                    EmptyView()
+                    MTEditorView()
                 case .EachCharacters:
                     EachCharactersView.Serika()
                 }
@@ -121,11 +122,17 @@ func ChangeScene(to sceneName: NowScene) {
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+    public static var orientationLock = UIInterfaceOrientationMask.landscape
+    
     func applicationDidFinishLaunching(_ application: UIApplication) {
         UIApplication.shared.isIdleTimerDisabled = true
         signal(SIGABRT, { c in
             CrashHander(signalStr: "SIGABRT", signalCode: c)
         })
+    }
+    
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return AppDelegate.orientationLock
     }
 }
 

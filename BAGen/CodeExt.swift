@@ -11,7 +11,7 @@ import Foundation
 
 @ViewBuilder func BAText(_ text: String, fontSize: CGFloat = 18, textColor: Color = Color(hex: 0x27394F), isSystemd: Bool = false, isBold: Bool = true) -> some View {
     if !isSystemd {
-        let pedStr = drawOutlineAttributedString(string: text, fontSize: fontSize, alignment: .left, textColor: UIColor(textColor), strokeWidth: -1.5, widthColor: .white)
+        let pedStr = drawOutlineAttributedString(string: text, fontSize: fontSize, alignment: .left, textColor: UIColor(textColor), strokeWidth: -2, widthColor: .white)
         Text("\(pedStr)")
             .font(.custom("GyeonggiTitle", size: fontSize))
             .fontWeight(.bold)
@@ -145,4 +145,14 @@ private func drawOutlineAttributedString(
     }
     .frame(height: 40)
     .offset(y: -30)
+}
+
+extension String {
+    var isContainBads: Bool {
+        if self.contains("狂暴雷普狼") {
+            return true
+        } else {
+            return false
+        }
+    }
 }
