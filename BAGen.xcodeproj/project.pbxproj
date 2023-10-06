@@ -669,6 +669,7 @@
 		8CCA71932ACEB7DA0008CC4A /* Maki_Collection.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6F092ACEB7DA0008CC4A /* Maki_Collection.png */; };
 		8CCA71942ACEB7DA0008CC4A /* CH0167_Collection.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6F0A2ACEB7DA0008CC4A /* CH0167_Collection.png */; };
 		8CCA71952ACEB7DA0008CC4A /* Citizen_Animal_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6F0B2ACEB7DA0008CC4A /* Citizen_Animal_1.png */; };
+		8CCA71972ACF08B40008CC4A /* CrashReporterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CCA71962ACF08B40008CC4A /* CrashReporterView.swift */; };
 		8CCFEBE52ACD16B4003ADFEA /* Theme_01.wav in Resources */ = {isa = PBXBuildFile; fileRef = 8CCFEBE42ACD16B4003ADFEA /* Theme_01.wav */; };
 		8CCFEBE72ACD16BE003ADFEA /* title.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 8CCFEBE62ACD16BE003ADFEA /* title.mp4 */; };
 		8CCFEBF52ACD1931003ADFEA /* NotoSansSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8CCFEBE92ACD1931003ADFEA /* NotoSansSC-Regular.otf */; };
@@ -1353,6 +1354,7 @@
 		8CCA6F092ACEB7DA0008CC4A /* Maki_Collection.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Maki_Collection.png; sourceTree = "<group>"; };
 		8CCA6F0A2ACEB7DA0008CC4A /* CH0167_Collection.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CH0167_Collection.png; sourceTree = "<group>"; };
 		8CCA6F0B2ACEB7DA0008CC4A /* Citizen_Animal_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Citizen_Animal_1.png; sourceTree = "<group>"; };
+		8CCA71962ACF08B40008CC4A /* CrashReporterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporterView.swift; sourceTree = "<group>"; };
 		8CCFEBE42ACD16B4003ADFEA /* Theme_01.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = Theme_01.wav; path = Res/BuiltIn/AudioClip/Theme_01.wav; sourceTree = SOURCE_ROOT; };
 		8CCFEBE62ACD16BE003ADFEA /* title.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = title.mp4; path = Res/BuiltIn/VideoClip/title.mp4; sourceTree = SOURCE_ROOT; };
 		8CCFEBE92ACD1931003ADFEA /* NotoSansSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Regular.otf"; sourceTree = "<group>"; };
@@ -1416,6 +1418,7 @@
 				8CCFEC012ACD361A003ADFEA /* PathFileChooserView.swift */,
 				8CFC141B2ACE8F5900DE14D7 /* FS */,
 				8CFC141C2ACE8F7000DE14D7 /* MT */,
+				8CCA71962ACF08B40008CC4A /* CrashReporterView.swift */,
 				6BD5A6312AC988E7004B05F9 /* Assets.xcassets */,
 				6BD5A6332AC988E7004B05F9 /* Preview Content */,
 			);
@@ -2905,6 +2908,7 @@
 				6BB0220B2AC9B67900460189 /* CodeExt.swift in Sources */,
 				6BD5A62E2AC988E6004B05F9 /* BAGenApp.swift in Sources */,
 				6B36D1482ACAEE3A0012CF1B /* FSEditChooserView.swift in Sources */,
+				8CCA71972ACF08B40008CC4A /* CrashReporterView.swift in Sources */,
 				6B36D14C2ACAFFDB0012CF1B /* FSEditorView.swift in Sources */,
 				8CCFEC022ACD361A003ADFEA /* PathFileChooserView.swift in Sources */,
 			);

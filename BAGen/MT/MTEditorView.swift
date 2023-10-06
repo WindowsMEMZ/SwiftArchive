@@ -14,6 +14,8 @@ import SwiftyJSON
 // 图片:    {角色 ID(String)}|{头像组下标(Int)}|"%%TImage%%*"(图像标记){图像 Base64}|{ShowldShowAsNew(Bool)}
 // 按行分隔
 // 角色 ID 为 "Sensei" 时显示消息由我方发出
+// 角色 ID 为 "SpecialEvent" 使显示羁绊剧情, 此时内容为羁绊剧情对象
+// 角色 ID 为 "System" 时显示系统信息
 
 //!!!: On this view, UIScreen.main.bounds' height & width were exchanged
 struct MTEditorView: View {
@@ -37,130 +39,7 @@ struct MTEditorView: View {
                 }
                 ScrollView {
                     if fullProjData != nil {
-                        ForEach(0..<fullProjData!.chatData.count, id: \.self) { i in
-                            if fullProjData!.chatData[i].characterId != "Sensei" {
-                                HStack {
-                                    let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
-                                    if fullProjData!.chatData[i].showldShowAsNew {
-                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "png")!))!)
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .clipShape(Circle())
-                                    } else {
-                                        Circle()
-                                            .fill(Color.clear)
-                                            .frame(width: 50, height: 50)
-                                    }
-                                    VStack {
-                                        if fullProjData!.chatData[i].showldShowAsNew {
-                                            BAText(thisCharacterData.shortName, fontSize: 18, isSystemd: true)
-                                                .padding(0)
-                                                .offset(x: -3, y: 5)
-                                        }
-                                        HStack(alignment: .top) {
-                                            if fullProjData!.chatData[i].showldShowAsNew {
-                                                Triangle()
-                                                    .fill(Color(hex: 0x435165))
-                                                    .frame(width: 8, height: 6)
-                                                    .rotationEffect(.degrees(-90))
-                                                    .offset(x: 10, y: 10)
-                                                    .padding(0)
-                                            } else {
-                                                Spacer()
-                                                    .frame(width: 25)
-                                            }
-                                            if !fullProjData!.chatData[i].isImage {
-                                                BAText(fullProjData!.chatData[i].content, fontSize: 20, textColor: .white, isSystemd: true, isBold: false)
-                                                    .padding(10)
-                                                    .background {
-                                                        RoundedRectangle(cornerRadius: 7)
-                                                            .fill(Color(hex: 0x435165))
-                                                    }
-                                            } else {
-                                                
-                                            }
-                                        }
-                                        .offset(x: -5)
-                                        .onTapGesture {
-                                            if isInserting {
-                                                fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
-                                                    if let upMessage = fullProjData!.chatData.last {
-                                                        if upMessage.characterId == currentSelectCharacterData.id {
-                                                            return false
-                                                        } else {
-                                                            return true
-                                                        }
-                                                    } else {
-                                                        return true
-                                                    }
-                                                }()), at: i + 1)
-                                                isInserting = false
-                                                newMessageTextCache = ""
-                                            } else {
-                                                DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
-                                            }
-                                        }
-                                        .onLongPressGesture(minimumDuration: 2) {
-                                            fullProjData!.chatData.remove(at: i)
-                                        }
-                                    }
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 10)
-                                .frame(maxWidth: UIScreen.main.bounds.height - 50)
-                            } else {
-                                HStack {
-                                    Spacer()
-                                    HStack(alignment: .top) {
-                                        if !fullProjData!.chatData[i].isImage {
-                                            BAText(fullProjData!.chatData[i].content, fontSize: 20, textColor: .white, isSystemd: true, isBold: false)
-                                                .padding(10)
-                                                .background {
-                                                    RoundedRectangle(cornerRadius: 7)
-                                                        .fill(Color(hex: 0x417FC3))
-                                                }
-                                        } else {
-                                            
-                                        }
-                                        if fullProjData!.chatData[i].showldShowAsNew {
-                                            Triangle()
-                                                .fill(Color(hex: 0x417FC3))
-                                                .frame(width: 8, height: 6)
-                                                .rotationEffect(.degrees(90))
-                                                .offset(x: -10, y: 10)
-                                                .padding(0)
-                                        } else {
-                                            Spacer()
-                                                .frame(width: 16)
-                                        }
-                                    }
-                                    .onTapGesture {
-                                        if isInserting {
-                                            fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
-                                                if let upMessage = fullProjData!.chatData.last {
-                                                    if upMessage.characterId == currentSelectCharacterData.id {
-                                                        return false
-                                                    } else {
-                                                        return true
-                                                    }
-                                                } else {
-                                                    return true
-                                                }
-                                            }()), at: i + 1)
-                                            isInserting = false
-                                            newMessageTextCache = ""
-                                        } else {
-                                            DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
-                                        }
-                                    }
-                                    .onLongPressGesture(minimumDuration: 2) {
-                                        fullProjData!.chatData.remove(at: i)
-                                    }
-                                }
-                                .padding(.horizontal, 10)
-                                .frame(maxWidth: UIScreen.main.bounds.height - 50)
-                            }
-                        }
+                        MainChatsView(fullProjData: $fullProjData, newMessageTextCache: $newMessageTextCache, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: $isInserting)
                     } else {
                         ProgressView()
                         Text("正在载入...")
@@ -187,6 +66,7 @@ struct MTEditorView: View {
                                 }()))
                                 newMessageTextCache = ""
                                 isTippedBads = false
+                                mtIsHaveUnsavedChange = true
                             }
                         }
                     Button(action: {
@@ -196,6 +76,7 @@ struct MTEditorView: View {
                         } else {
                             isInserting.toggle()
                             isTippedBads = false
+                            mtIsHaveUnsavedChange = true
                         }
                     }, label: {
                         ZStack {
@@ -219,7 +100,7 @@ struct MTEditorView: View {
                     })
                     .sheet(isPresented: $isChatActionsPresented, onDismiss: {
                         
-                    }, content: {ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: fullProjData!, projName: projName)})
+                    }, content: {ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: $fullProjData, projName: projName)})
                 }
             }
         }
@@ -237,6 +118,8 @@ struct MTEditorView: View {
             AppDelegate.orientationLock = .landscape
             UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
             UINavigationController.attemptRotationToDeviceOrientation()
+            
+            mtIsHaveUnsavedChange = false
         }
     }
     
@@ -251,11 +134,170 @@ struct MTEditorView: View {
         }
     }
     
+    struct MainChatsView: View {
+        @Binding var fullProjData: MTBase.FullData?
+        @Binding var newMessageTextCache: String
+        @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
+        @Binding var currentSelectCharacterImageGroupIndex: Int
+        @Binding var isInserting: Bool
+        var body: some View {
+            ForEach(0..<fullProjData!.chatData.count, id: \.self) { i in
+                if fullProjData!.chatData[i].characterId == "Sensei" {
+                    HStack {
+                        Spacer()
+                        HStack(alignment: .top) {
+                            if !fullProjData!.chatData[i].isImage {
+                                BAText(fullProjData!.chatData[i].content, fontSize: 20, textColor: .white, isSystemd: true, isBold: false)
+                                    .padding(10)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 7)
+                                            .fill(Color(hex: 0x417FC3))
+                                    }
+                            } else {
+                                
+                            }
+                            if fullProjData!.chatData[i].showldShowAsNew {
+                                Triangle()
+                                    .fill(Color(hex: 0x417FC3))
+                                    .frame(width: 8, height: 6)
+                                    .rotationEffect(.degrees(90))
+                                    .offset(x: -10, y: 10)
+                                    .padding(0)
+                            } else {
+                                Spacer()
+                                    .frame(width: 16)
+                            }
+                        }
+                        .onTapGesture {
+                            if isInserting {
+                                fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                    if let upMessage = fullProjData!.chatData.last {
+                                        if upMessage.characterId == currentSelectCharacterData.id {
+                                            return false
+                                        } else {
+                                            return true
+                                        }
+                                    } else {
+                                        return true
+                                    }
+                                }()), at: i + 1)
+                                isInserting = false
+                                newMessageTextCache = ""
+                            } else {
+                                DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
+                            }
+                        }
+                        .onLongPressGesture(minimumDuration: 2) {
+                            fullProjData!.chatData.remove(at: i)
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .frame(maxWidth: UIScreen.main.bounds.height - 50)
+                } else if fullProjData!.chatData[i].characterId == "SpecialEvent" {
+                    HStack {
+                        Spacer()
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color(hex: 0xFCEBF0))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color(hex: 0xCDCDCD), lineWidth: 1)
+                                }
+                                .frame(width: 180, height: 60)
+                            HStack {
+                                Spacer()
+                                Image(systemName: "heart.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(Color(hex: 0xFFCBD6))
+                                    .offset(x: 20)
+                            }
+                        }
+                        .frame(width: 180, height: 60)
+                        Spacer()
+                            .frame(width: 10)
+                    }
+                } else if fullProjData!.chatData[i].characterId == "System" {
+                    
+                } else {
+                    HStack {
+                        let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
+                        if fullProjData!.chatData[i].showldShowAsNew {
+                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "png")!))!)
+                                .resizable()
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.clear)
+                                .frame(width: 50, height: 50)
+                        }
+                        VStack {
+                            if fullProjData!.chatData[i].showldShowAsNew {
+                                BAText(thisCharacterData.shortName, fontSize: 18, isSystemd: true)
+                                    .padding(0)
+                                    .offset(x: -3, y: 5)
+                            }
+                            HStack(alignment: .top) {
+                                if fullProjData!.chatData[i].showldShowAsNew {
+                                    Triangle()
+                                        .fill(Color(hex: 0x435165))
+                                        .frame(width: 8, height: 6)
+                                        .rotationEffect(.degrees(-90))
+                                        .offset(x: 10, y: 10)
+                                        .padding(0)
+                                } else {
+                                    Spacer()
+                                        .frame(width: 25)
+                                }
+                                if !fullProjData!.chatData[i].isImage {
+                                    BAText(fullProjData!.chatData[i].content, fontSize: 20, textColor: .white, isSystemd: true, isBold: false)
+                                        .padding(10)
+                                        .background {
+                                            RoundedRectangle(cornerRadius: 7)
+                                                .fill(Color(hex: 0x435165))
+                                        }
+                                } else {
+                                    
+                                }
+                            }
+                            .offset(x: -5)
+                            .onTapGesture {
+                                if isInserting {
+                                    fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                        if let upMessage = fullProjData!.chatData.last {
+                                            if upMessage.characterId == currentSelectCharacterData.id {
+                                                return false
+                                            } else {
+                                                return true
+                                            }
+                                        } else {
+                                            return true
+                                        }
+                                    }()), at: i + 1)
+                                    isInserting = false
+                                    newMessageTextCache = ""
+                                } else {
+                                    DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
+                                }
+                            }
+                            .onLongPressGesture(minimumDuration: 2) {
+                                fullProjData!.chatData.remove(at: i)
+                            }
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 10)
+                    .frame(maxWidth: UIScreen.main.bounds.height - 50)
+                }
+            }
+        }
+    }
+    
     struct ChatActionsView: View {
         @Binding var characterSelectTab: [[String: Any]]?
         @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
         @Binding var currentSelectCharacterImageGroupIndex: Int
-        var fullProjData: MTBase.FullData
+        @Binding var fullProjData: MTBase.FullData?
         var projName: String
         @State var nowTabviewSelection = 0
         var body: some View {
@@ -272,8 +314,14 @@ struct MTEditorView: View {
                         Label("选择角色", systemImage: "person.and.background.dotted")
                             .symbolRenderingMode(.hierarchical)
                     }
-                ProjectSettingsView(fullProjData: fullProjData, projName: projName)
+                SendSpecialMessageView(currentSelectCharacterData: $currentSelectCharacterData, fullProjData: $fullProjData)
                     .tag(2)
+                    .tabItem {
+                        Label("特殊消息", systemImage: "star.bubble")
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                ProjectSettingsView(projName: projName, fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex)
+                    .tag(3)
                     .tabItem {
                         Label("项目管理", systemImage: "doc.badge.gearshape")
                             .symbolRenderingMode(.hierarchical)
@@ -339,21 +387,47 @@ struct MTEditorView: View {
             @Binding var characterSelectTab: [[String: Any]]?
             @Binding var nowTabviewSelection: Int
             @State var allCharacterDatas: [MTBase.SingleCharacterData]? = nil
+            @State var searchText = ""
+            @State var searchedCharacterDatas: [MTBase.SingleCharacterData]? = nil
             var body: some View {
                 NavigationView {
                     List {
                         if allCharacterDatas != nil {
-                            ForEach(0..<allCharacterDatas!.count, id: \.self) { i in
-                                NavigationLink(destination: {AddCharacterSettingView(selectedCharacterData: allCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection)}, label: {
-                                    HStack {
-                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: allCharacterDatas![i].imageNames[0], withExtension: "png")!))!)
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .clipShape(Circle())
-                                        Spacer()
-                                        Text(allCharacterDatas![i].fullName)
-                                    }
-                                })
+                            if searchText == "" || searchedCharacterDatas == nil || searchedCharacterDatas?.count == 0 {
+                                ForEach(0..<allCharacterDatas!.count, id: \.self) { i in
+                                    NavigationLink(destination: {AddCharacterSettingView(selectedCharacterData: allCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection)}, label: {
+                                        HStack {
+                                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: allCharacterDatas![i].imageNames[0], withExtension: "png")!))!)
+                                                .resizable()
+                                                .frame(width: 50, height: 50)
+                                                .clipShape(Circle())
+                                            Spacer()
+                                            Text(allCharacterDatas![i].fullName)
+                                        }
+                                    })
+                                }
+                            } else {
+                                ForEach(0..<searchedCharacterDatas!.count, id: \.self) { i in
+                                    NavigationLink(destination: {AddCharacterSettingView(selectedCharacterData: searchedCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection)}, label: {
+                                        HStack {
+                                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: searchedCharacterDatas![i].imageNames[0], withExtension: "png")!))!)
+                                                .resizable()
+                                                .frame(width: 50, height: 50)
+                                                .clipShape(Circle())
+                                            Spacer()
+                                            Text(searchedCharacterDatas![i].fullName)
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
+                    .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: "搜索...")
+                    .onChange(of: searchText) { value in
+                        searchedCharacterDatas = [MTBase.SingleCharacterData]()
+                        for i in 0..<allCharacterDatas!.count {
+                            if allCharacterDatas![i].fullName.contains(searchText) {
+                                searchedCharacterDatas!.append(allCharacterDatas![i])
                             }
                         }
                     }
@@ -413,21 +487,141 @@ struct MTEditorView: View {
             }
         }
         
-        struct ProjectSettingsView: View {
-            var fullProjData: MTBase.FullData
-            var projName: String
+        struct SendSpecialMessageView: View {
+            @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
+            @Binding var fullProjData: MTBase.FullData?
+            @Environment(\.dismiss) var dismiss
+            @AppStorage("IsIgnoreSpecialEventTip") var isIgnoreSpecialEventTip = false
+            @State var systemMessageInputCache = ""
+            @State var shouldAddSpecialEvent = false
+            @State var isSpecialEventAddTipPresented = false
             var body: some View {
                 NavigationView {
                     List {
+                        TextField("系统消息", text: $systemMessageInputCache)
+                            .onSubmit {
+                                
+                            }
+                        Button(action: {
+                            if !isIgnoreSpecialEventTip {
+                                isSpecialEventAddTipPresented = true
+                            } else {
+                                AddNewSpecialEvent()
+                                dismiss()
+                            }
+                        }, label: {
+                            Text("羁绊剧情")
+                        })
+                        .sheet(isPresented: $isSpecialEventAddTipPresented, onDismiss: {
+                            if shouldAddSpecialEvent {
+                                shouldAddSpecialEvent = false
+                                AddNewSpecialEvent()
+                                dismiss()
+                            }
+                        }, content: {SpecialEventAddTipView(shouldAddSpecialEvent: $shouldAddSpecialEvent)})
+                    }
+                    .navigationTitle("特殊消息")
+                }
+            }
+            
+            func AddNewSpecialEvent() {
+                fullProjData!.chatData.append(.init(characterId: "SpecialEvent", imageGroupIndex: 0, isImage: false, content: currentSelectCharacterData.shortName, showldShowAsNew: true))
+            }
+            
+            struct SpecialEventAddTipView: View {
+                @Binding var shouldAddSpecialEvent: Bool
+                @Environment(\.dismiss) var dismiss
+                @AppStorage("IsIgnoreSpecialEventTip") var isIgnoreSpecialEventTip = false
+                var body: some View {
+                    VStack {
+                        Text("来自开发者的提示")
+                            .font(.system(size: 22, weight: .bold))
+                        Text("请慎用羁绊剧情\n添加羁绊剧情可能影响观看体验")
+                            .font(.system(size: 18))
+                        Spacer()
+                            .frame(height: 20)
+                        Button(action: {
+                            dismiss()
+                        }, label: {
+                            Text("不添加")
+                                .font(.system(size: 18, weight: .medium))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        })
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(.blue)
+                        .cornerRadius(14)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 25)
+                        Button(action: {
+                            shouldAddSpecialEvent = true
+                            dismiss()
+                        }, label: {
+                            Text("添加")
+                                .font(.system(size: 18, weight: .medium))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        })
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(.gray)
+                        .cornerRadius(14)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 25)
+                        Button(action: {
+                            isIgnoreSpecialEventTip = true
+                            shouldAddSpecialEvent = true
+                            dismiss()
+                        }, label: {
+                            Text("添加, 以后不再提醒")
+                                .font(.system(size: 18, weight: .medium))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        })
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(.gray)
+                        .cornerRadius(14)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 25)
+                    }
+                }
+            }
+        }
+        
+        struct ProjectSettingsView: View {
+            var projName: String
+            @Binding var fullProjData: MTBase.FullData?
+            @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
+            @Binding var currentSelectCharacterImageGroupIndex: Int
+            @Environment(\.dismiss) var dismiss
+            @State var isExportAsImageTipPresented = false
+            var body: some View {
+                NavigationView {
+                    List {
+                        Section(header: Text("导出")) {
+                            Button(action: {
+                                //isExportAsImageTipPresented = true
+                                dismiss()
+                            }, label: {
+                                Text("图片...")
+                            })
+                            .sheet(isPresented: $isExportAsImageTipPresented, onDismiss: {
+                                dismiss()
+                            }, content: {ExportAsImageTipView()})
+                            Image(uiImage: MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false)).snapshot())
+                                .resizable()
+                        }
+                        
                         Section(header: Text("操作")) {
                             Button(action: {
                                 SaveProject()
+                                mtIsHaveUnsavedChange = false
                                 DarockKit.UIAlert.shared.presentAlert(title: "成功", subtitle: "项目已保存", icon: .done, style: .iOS17AppleMusic, haptic: .success)
                             }, label: {
                                 Text("保存")
                             })
                             Button(action: {
                                 SaveProject()
+                                mtIsHaveUnsavedChange = false
                                 nowScene = .MTEditChooser
                             }, label: {
                                 Text("保存并退出")
@@ -467,8 +661,18 @@ struct MTEditorView: View {
                 }
             }
             
+            struct ExportAsImageTipView: View {
+                var body: some View {
+                    VStack {
+                        Text("导出为图片")
+                            .font(.system(size: 22, weight: .bold))
+                        //Text("导出时屏幕会自动滚动以获取截图, 在")
+                    }
+                }
+            }
+            
             func SaveProject() {
-                let projStrData = MTBase().toOutString(from: fullProjData)
+                let projStrData = MTBase().toOutString(from: fullProjData!)
                 let filePath = AppFileManager(path: "MTProj").GetFilePath(name: projName).path
                 try! projStrData.write(toFile: filePath, atomically: true, encoding: .utf8)
             }

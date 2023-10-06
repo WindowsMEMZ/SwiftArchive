@@ -7,17 +7,20 @@
 
 import Darwin
 import SwiftUI
+import UserNotifications
 
 var debugConsoleText = ""
 var nowScene = NowScene.Intro
 var fsEnterProjName = ""
 var mtEnterProjName = ""
+var mtIsHaveUnsavedChange = false
 var isGlobalAlertPresented = false
 var globalAlertContent: (() -> AnyView)?
 
 @main
 struct BAGenApp: App {
-    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @Environment(\.scenePhase) var scenePhase
     @State var debugConsoleContent = ""
     @State var nowMainScene = NowScene.Intro
     @State var isAlertPresented = false
@@ -47,6 +50,8 @@ struct BAGenApp: App {
                     MTEditorView()
                 case .EachCharacters:
                     EachCharactersView.Serika()
+                case .CrashReporter:
+                    CrashReporterView()
                 }
             }
             .overlay {
@@ -81,28 +86,56 @@ struct BAGenApp: App {
                     .frame(width: 350, height: 260)
                 }
             }
-//                .overlay(alignment: .topTrailing) {
-//                    ZStack {
-//                        RoundedRectangle(cornerRadius: 8).fill(.black).opacity(0.4)
-//                            .frame(width: 200, height: 100)
-//                        ScrollView {
-//                            HStack {
-//                                Text(debugConsoleContent)
-//                                    .foregroundColor(.white)
-//                                    .font(.system(size: 16))
-//                                    .onAppear {
-//                                        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-//                                            debugConsoleContent = debugConsoleText
-//                                        }
-//                                    }
-//                                Spacer()
-//                            }
-//                        }
-//                        .padding(5)
-//                    }
-//                    .frame(width: 200, height: 100)
-//                    .allowsHitTesting(false)
-//                }
+        }
+        .onChange(of: scenePhase) { value in
+            switch value {
+            case .active:
+                // applicationDidFinishLaunching
+                if UserDefaults.standard.string(forKey: "CrashData") != nil {
+                    nowScene = .CrashReporter
+                }
+                
+                UIApplication.shared.isIdleTimerDisabled = true
+                signal(SIGABRT, { c in
+                    CrashHander(signalStr: "SIGABRT", signalCode: c)
+                })
+                signal(SIGTRAP, { c in
+                    CrashHander(signalStr: "SIGTRAP", signalCode: c)
+                })
+                signal(SIGILL, { c in
+                    CrashHander(signalStr: "SIGILL", signalCode: c)
+                })
+                
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+                    if granted {
+                        // 用户已经同意授权
+                    } else {
+                        // 用户拒绝了授权
+                    }
+                }
+            case .inactive:
+                print("Inactive")
+            case .background:
+                // applicationDidEnterBackground
+                if mtIsHaveUnsavedChange {
+                    debugPrint("Unsaved Change")
+                    let content = UNMutableNotificationContent()
+                    content.title = "未保存的项目"
+                    content.body = "您刚才编辑的项目尚未保存"
+                    content.sound = UNNotificationSound.default
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+                    let request = UNNotificationRequest(identifier: "MTUnsavedChangeTip", content: content, trigger: trigger)
+                    UNUserNotificationCenter.current().add(request) { error in
+                        if let error = error {
+                            print("发送通知失败：\(error.localizedDescription)")
+                        } else {
+                            print("通知已发送")
+                        }
+                    }
+                }
+            @unknown default:
+                break
+            }
         }
     }
 }
@@ -115,6 +148,7 @@ enum NowScene {
     case MTEditChooser
     case MTEditor
     case EachCharacters
+    case CrashReporter
 }
 
 func ChangeScene(to sceneName: NowScene) {
@@ -124,20 +158,13 @@ func ChangeScene(to sceneName: NowScene) {
 class AppDelegate: NSObject, UIApplicationDelegate {
     public static var orientationLock = UIInterfaceOrientationMask.landscape
     
-    func applicationDidFinishLaunching(_ application: UIApplication) {
-        UIApplication.shared.isIdleTimerDisabled = true
-        signal(SIGABRT, { c in
-            CrashHander(signalStr: "SIGABRT", signalCode: c)
-        })
-    }
-    
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         return AppDelegate.orientationLock
     }
 }
 
 func CrashHander(signalStr: String, signalCode: Int32) {
-    var fullTrack = """
+    let fullTrack = """
     -------------------------------------
     Translated Report (Full Report Below)
     -------------------------------------
@@ -158,6 +185,8 @@ func CrashHander(signalStr: String, signalCode: Int32) {
     Exception Type:  (\(signalStr))
     Termination Reason: (\(signalStr) \(signalCode))
     
-    
+    \(Thread.callStackSymbols)
     """
+    UserDefaults.standard.set(fullTrack, forKey: "CrashData")
+    exit(1)
 }

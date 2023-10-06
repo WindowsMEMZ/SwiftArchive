@@ -6,8 +6,10 @@
 //
 
 import SwiftUI
+import DarockKit
 
 struct TypeChooseView: View {
+    @AppStorage("ResVersion") var resVersion = 0
     var body: some View {
         ZStack {
             Image("GlobalBGImage")
@@ -18,7 +20,11 @@ struct TypeChooseView: View {
                 HStack {
                     Group {
                         AButton(action: {
-                            nowScene = .FSEditChooser
+                            if resVersion != 0 {
+                                nowScene = .FSEditChooser
+                            } else {
+                                DarockKit.UIAlert.shared.presentAlert(title: "无法使用剧情编辑器", subtitle: "未下载附加资源", icon: .error, style: .iOS17AppleMusic, haptic: .error)
+                            }
                         }, label: {
                             BAText("剧情编辑器", fontSize: 30, isSystemd: true)
                         })

@@ -17,6 +17,7 @@ let globalAppVersion = 100
 struct ContentView: View {
     @AppStorage("ResVersion") var resVersion = 0
     @AppStorage("FinishedDownloadVer") var finishedDownloadVer = 0 // After Download(But not finish unzip), Set this to serverVer
+    @AppStorage("IsSkippedDownload") var isSkippedDownload = false
     let bgAvplayer = AVPlayer(url: Bundle.main.url(forResource: "title", withExtension: "mp4")!)
     let bgAudioPlayer = try? AVAudioPlayer(contentsOf: Bundle.main.url(forResource: "Theme_01", withExtension: "wav")!)
     @State var statusText = "正在检查更新..."
@@ -33,8 +34,8 @@ struct ContentView: View {
                 HStack {
                     Spacer()
                     BAButton(action: {
-//                        resVersion = 100
-                        nowScene = .EachCharacters
+                        resVersion = 0
+                        isSkippedDownload = false
                     }, label: "Test")
                 }
                 Spacer()
@@ -94,11 +95,31 @@ struct ContentView: View {
                             DarockKit.Network.shared.requestString("https://api.darock.top/bagen/update/check") { respStr, isSuccess in
                                 if isSuccess {
                                     if let serverVer = Int(respStr) {
-                                        if resVersion < serverVer {
+                                        if (resVersion < serverVer) && !isSkippedDownload {
                                             if finishedDownloadVer >= serverVer, let filePath = UserDefaults.standard.string(forKey: "WaitToUnzipFilePath") {
                                                 UnzipArchive(filePath: filePath, serverVer: serverVer)
                                             } else {
-                                                StartDownload(serverVer: serverAppVer)
+                                                globalAlertContent = {
+                                                    AnyView(
+                                                        VStack {
+                                                            Spacer()
+                                                                .frame(height: 20)
+                                                            BAText("需要下载约3GB的附加资源\n跳过下载将导致部分功能不可用", fontSize: 20, isSystemd: true)
+                                                            HStack {
+                                                                BAButton(action: {
+                                                                    isSkippedDownload = true
+                                                                    isFinished = true
+                                                                    isGlobalAlertPresented = false
+                                                                    globalAlertContent = nil
+                                                                }, label: "跳过")
+                                                                BAButton(action: {
+                                                                    StartDownload(serverVer: serverVer)
+                                                                }, label: "下载", isHighlighted: true)
+                                                            }
+                                                        }
+                                                    )
+                                                }
+                                                isGlobalAlertPresented = true
                                             }
                                         } else {
                                             isFinished = true
