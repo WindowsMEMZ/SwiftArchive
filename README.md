@@ -12,21 +12,20 @@
 
 ### 安装
 #### 方案一(TestFlight)
-正在审核中...
+[Public Beta(推荐)](https://testflight.apple.com/join/JLFPR0qe)  包含较新的功能, 经过部分测试, 问题较少, 但仍可能会发生一些问题. 一般情况与 GitHub `Release` 保持同步.
+[Developer Beta](https://testflight.apple.com/join/C9VEKrC8)  未经测试的所有代码更新提交, 可能会有严重崩溃甚至丢失数据的可能. 一般情况与`main`分支保持同步.
 #### 方案二(自签)
-(当前不可用, 请等待第一个 Release)
-
-在GitHub项目Release页下载ipa并自行签名
+在GitHub项目`Release`页下载ipa并自行签名
 #### 方案三(自编译) [当前推荐]
 `clone`本库, 并自行在Xcode中编译
 ### 对于用户
 #### 提交反馈
-如您在使用过程中遇到问题, 可先查看下方的已知问题列表~~或TestFlight中的 Release Notes~~.
+如您在使用过程中遇到问题, 可先查看下方的已知问题列表或TestFlight中的 Release Notes.
 如已知问题列表中没有您遇到的问题, 可通过以下方式提交反馈:
 ##### Issue
 在GitHub上的`Issues`页提交一个Issue
 ##### TestFlight 反馈 (当前不可用)
-~~在TestFlight中发送反馈, 在遇到已被捕获的崩溃问题时建议使用此方式~~
+在TestFlight中发送反馈, 在遇到已被捕获的崩溃问题时建议使用此方式
 ##### 注意事项
 提交反馈时应清晰地写出问题的重现步骤等信息
 #### 提供建议
