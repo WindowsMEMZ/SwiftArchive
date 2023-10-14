@@ -1,0 +1,48 @@
+name: 反馈错误
+description: 遇到错误/异常行为
+title: "[错误]: "
+labels: ["错误", "需要分类"]
+assignees:
+  - WindowsMEMZ
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间填写本表单！
+  - type: dropdown
+    id: err_location
+    attributes:
+      label: 问题位置
+      description: 问题是在项目的哪一部分发生的呢？
+      options:
+        - Momotalk 编辑器
+        - 剧情编辑器
+        - 其他
+      default: 0
+    validations:
+      required: true
+  - type: input
+    id: err_location_other
+    attributes:
+      label: 其他问题位置
+      description: 如果上一个选择为“其他”，请填写此项
+      placeholder: 例如：下载页
+    validations:
+      required: false
+  - type: textarea
+    id: main_desc
+    attributes:
+      label: 问题描述
+      description: 描述你遇到的问题
+      placeholder: 例如：在打开Momotalk项目的时候，软件崩溃了
+    validations:
+      required: true
+  - type: textarea
+    id: reaction
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
