@@ -10,7 +10,7 @@ import SwiftUI
 import UserNotifications
 
 var debugConsoleText = ""
-var nowScene = NowScene.MTEditChooser
+var nowScene = NowScene.Intro
 var fsEnterProjName = ""
 var mtEnterProjName = ""
 var mtIsHaveUnsavedChange = false
