@@ -20,6 +20,8 @@
 		6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6BD5A63C2AC98912004B05F9 /* DarockKit */; };
 		8C2315DA2AD98C0A00AE96EE /* ScreenshotableView in Frameworks */ = {isa = PBXBuildFile; productRef = 8C2315D92AD98C0A00AE96EE /* ScreenshotableView */; };
 		8C42796A2ACD9DB4007A367C /* EachCharactersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4279692ACD9DB4007A367C /* EachCharactersView.swift */; };
+		8CC889912ADA74D100191A59 /* MTRawEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CC889902ADA74D100191A59 /* MTRawEditorView.swift */; };
+		8CC889942ADA7D3800191A59 /* AttributedString in Frameworks */ = {isa = PBXBuildFile; productRef = 8CC889932ADA7D3800191A59 /* AttributedString */; };
 		8CCA6F0C2ACEB7DA0008CC4A /* ClanChat_Emoji_120_Jp.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6C812ACEB7D90008CC4A /* ClanChat_Emoji_120_Jp.png */; };
 		8CCA6F0D2ACEB7DA0008CC4A /* ClanChat_Emoji_83_Jp.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6C822ACEB7D90008CC4A /* ClanChat_Emoji_83_Jp.png */; };
 		8CCA6F0E2ACEB7DA0008CC4A /* ClanChat_Emoji_143_Jp.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6C832ACEB7D90008CC4A /* ClanChat_Emoji_143_Jp.png */; };
@@ -705,6 +707,7 @@
 		6BD5A63E2AC98932004B05F9 /* BAGen.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BAGen.entitlements; sourceTree = "<group>"; };
 		6BD5A63F2AC991C9004B05F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		8C4279692ACD9DB4007A367C /* EachCharactersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EachCharactersView.swift; sourceTree = "<group>"; };
+		8CC889902ADA74D100191A59 /* MTRawEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTRawEditorView.swift; sourceTree = "<group>"; };
 		8CCA6C812ACEB7D90008CC4A /* ClanChat_Emoji_120_Jp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ClanChat_Emoji_120_Jp.png; sourceTree = "<group>"; };
 		8CCA6C822ACEB7D90008CC4A /* ClanChat_Emoji_83_Jp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ClanChat_Emoji_83_Jp.png; sourceTree = "<group>"; };
 		8CCA6C832ACEB7D90008CC4A /* ClanChat_Emoji_143_Jp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ClanChat_Emoji_143_Jp.png; sourceTree = "<group>"; };
@@ -1383,6 +1386,7 @@
 				8C2315DA2AD98C0A00AE96EE /* ScreenshotableView in Frameworks */,
 				6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */,
 				6BB0220E2AC9B93D00460189 /* ZipArchive in Frameworks */,
+				8CC889942ADA7D3800191A59 /* AttributedString in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2154,6 +2158,7 @@
 			children = (
 				8CFC141D2ACE8F8E00DE14D7 /* MTEditChooserView.swift */,
 				8CFC141F2ACE8FA000DE14D7 /* MTEditorView.swift */,
+				8CC889902ADA74D100191A59 /* MTRawEditorView.swift */,
 			);
 			path = MT;
 			sourceTree = "<group>";
@@ -2178,6 +2183,7 @@
 				6BD5A63C2AC98912004B05F9 /* DarockKit */,
 				6BB0220D2AC9B93D00460189 /* ZipArchive */,
 				8C2315D92AD98C0A00AE96EE /* ScreenshotableView */,
+				8CC889932ADA7D3800191A59 /* AttributedString */,
 			);
 			productName = BAGen;
 			productReference = 6BD5A62A2AC988E6004B05F9 /* BAGen.app */;
@@ -2212,6 +2218,7 @@
 				6BD5A63B2AC98912004B05F9 /* XCRemoteSwiftPackageReference "DarockKit" */,
 				6BB0220C2AC9B93D00460189 /* XCRemoteSwiftPackageReference "ZipArchive" */,
 				8C2315D82AD98C0A00AE96EE /* XCRemoteSwiftPackageReference "ScreenshotableView" */,
+				8CC889922ADA7D3800191A59 /* XCRemoteSwiftPackageReference "AttributedString" */,
 			);
 			productRefGroup = 6BD5A62B2AC988E6004B05F9 /* Products */;
 			projectDirPath = "";
@@ -2909,6 +2916,7 @@
 				8CFC14202ACE8FA000DE14D7 /* MTEditorView.swift in Sources */,
 				8CFC141E2ACE8F8E00DE14D7 /* MTEditChooserView.swift in Sources */,
 				6B36D1462ACADF8B0012CF1B /* TypeChooseView.swift in Sources */,
+				8CC889912ADA74D100191A59 /* MTRawEditorView.swift in Sources */,
 				6BB0220B2AC9B67900460189 /* CodeExt.swift in Sources */,
 				6BD5A62E2AC988E6004B05F9 /* BAGenApp.swift in Sources */,
 				6B36D1482ACAEE3A0012CF1B /* FSEditChooserView.swift in Sources */,
@@ -3166,6 +3174,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		8CC889922ADA7D3800191A59 /* XCRemoteSwiftPackageReference "AttributedString" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/lixiang1994/AttributedString";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.3.5;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -3183,6 +3199,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8C2315D82AD98C0A00AE96EE /* XCRemoteSwiftPackageReference "ScreenshotableView" */;
 			productName = ScreenshotableView;
+		};
+		8CC889932ADA7D3800191A59 /* AttributedString */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8CC889922ADA7D3800191A59 /* XCRemoteSwiftPackageReference "AttributedString" */;
+			productName = AttributedString;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -141,17 +141,19 @@ struct MTEditorView: View {
         @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
         @Binding var currentSelectCharacterImageGroupIndex: Int
         @Binding var isInserting: Bool
-        var displayMessageIndexRange: ClosedRange<Int>? = nil
+        var displayMessageIndexRange: ClosedRange<Int>? = nil // For ScreenShot
         var body: some View {
             VStack {
                 ForEach(0..<fullProjData!.chatData.count, id: \.self) { i in
                     if displayMessageIndexRange == nil || (displayMessageIndexRange ?? 0...1).contains(i) {
                         if fullProjData!.chatData[i].characterId == "Sensei" {
+                            // MARK: Message View from Sensei
                             HStack {
                                 Spacer()
                                 HStack(alignment: .top) {
                                     if !fullProjData!.chatData[i].isImage {
                                         BAText(fullProjData!.chatData[i].content, fontSize: 18, textColor: .white, isSystemd: true, isBold: false)
+                                            .fixedSize(horizontal: false, vertical: true)
                                             .padding(10)
                                             .background {
                                                 RoundedRectangle(cornerRadius: 7)
@@ -198,6 +200,8 @@ struct MTEditorView: View {
                             .padding(.horizontal, 10)
                             .frame(maxWidth: UIScreen.main.bounds.height - 50)
                         } else if fullProjData!.chatData[i].characterId == "SpecialEvent" {
+                            // MARK: Special Event Message View
+                            // TODO: Display, Delete, Insert Support
                             HStack {
                                 Spacer()
                                 ZStack {
@@ -221,6 +225,7 @@ struct MTEditorView: View {
                                     .frame(width: 10)
                             }
                         } else if fullProjData!.chatData[i].characterId == "System" {
+                            // MARK: Message View from System
                             HStack {
                                 Spacer()
                                 BAText(fullProjData!.chatData[i].content, fontSize: 16, textColor: Color(hex: 0x3C454F), isSystemd: true)
@@ -249,6 +254,7 @@ struct MTEditorView: View {
                                 fullProjData!.chatData.remove(at: i)
                             }
                         } else {
+                            // MARK: Other Character Message View
                             HStack {
                                 let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
                                 if fullProjData!.chatData[i].showldShowAsNew {
@@ -262,6 +268,7 @@ struct MTEditorView: View {
                                         .frame(width: 50, height: 50)
                                 }
                                 VStack {
+                                    // Character Name
                                     if fullProjData!.chatData[i].showldShowAsNew {
                                         HStack {
                                             BAText(thisCharacterData.shortName, fontSize: 16, isSystemd: true)
@@ -271,6 +278,7 @@ struct MTEditorView: View {
                                         }
                                     }
                                     HStack(alignment: .top) {
+                                        // Message Bubble
                                         if fullProjData!.chatData[i].showldShowAsNew {
                                             Triangle()
                                                 .fill(Color(hex: 0x435165))
@@ -283,7 +291,9 @@ struct MTEditorView: View {
                                                 .frame(width: 25)
                                         }
                                         if !fullProjData!.chatData[i].isImage {
+                                            // Text Content
                                             BAText(fullProjData!.chatData[i].content, fontSize: 18, textColor: .white, isSystemd: true, isBold: false)
+                                                .fixedSize(horizontal: false, vertical: true)
                                                 .padding(10)
                                                 .background {
                                                     RoundedRectangle(cornerRadius: 7)
@@ -633,8 +643,9 @@ struct MTEditorView: View {
             @Binding var currentSelectCharacterImageGroupIndex: Int
             @Environment(\.dismiss) var dismiss
             @State var isExportAsImagePresented = false
-            @State var mViewImage = UIImage()
-            
+            @State var isShareSheetPresented = false
+            @State var isEditRawTipped = false
+            @State var isRawEditorPresented = false
             var body: some View {
                 NavigationView {
                     List {
@@ -647,8 +658,24 @@ struct MTEditorView: View {
                             .sheet(isPresented: $isExportAsImagePresented, onDismiss: {
                                 dismiss()
                             }, content: {ExportAsImageView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex)})
-                            Image(uiImage: mViewImage)
-                                .resizable()
+                            Button(action: {
+                                let sourceURL = AppFileManager(path: "MTProj").GetPath(projName).url
+                                let destinationUrl = FileManager.default.temporaryDirectory.appendingPathComponent(sourceURL.lastPathComponent)
+                                do {
+                                    if FileManager.default.fileExists(atPath: destinationUrl.path) {
+                                        try FileManager.default.removeItem(at: destinationUrl)
+                                    }
+                                    try FileManager.default.copyItem(at: sourceURL, to: destinationUrl)
+                                    isShareSheetPresented = true
+                                } catch {
+                                    print("Failed to copy file: \(error)")
+                                }
+                            }, label: {
+                                Text("文件...")
+                            })
+                            .sheet(isPresented: $isShareSheetPresented, onDismiss: {
+                                dismiss()
+                            }, content: {ShareSheet(activityItems: [FileManager.default.temporaryDirectory.appendingPathComponent(AppFileManager(path: "MTProj").GetPath(projName).url.lastPathComponent)])})
                         }
                         
                         Section(header: Text("操作")) {
@@ -695,6 +722,22 @@ struct MTEditorView: View {
                                 AppFileManager(path: "MTProj").DeleteFile(projName)
                                 nowScene = .MTEditChooser
                             }
+                        }
+                        
+                        Section(header: Text("高级")) {
+                            Button(action: {
+                                if isEditRawTipped {
+                                    isRawEditorPresented = true
+                                } else {
+                                    DarockKit.UIAlert.shared.presentAlert(title: "注意", subtitle: "编辑源文件可能导致项目损坏\n仅适合高级用户\n再次单击以编辑", icon: .none, style: .iOS17AppleMusic, haptic: .warning, duration: 3)
+                                    isEditRawTipped = true
+                                }
+                            }, label: {
+                                Text("编辑源文件")
+                            })
+                            .fullScreenCover(isPresented: $isRawEditorPresented, onDismiss: {
+                                
+                            }, content: {MTRawEditorView(projName: projName)})
                         }
                     }
                     .navigationTitle("项目管理")
@@ -803,52 +846,55 @@ struct MTEditorView: View {
                                 }
                             }
                             Section(header: Text("预览")) {
-                                if splittingMethod == .none {
-                                    ScreenshotableView(shotting: $isScreenShotting[0]) { screenshot in
-                                        exportingImage = screenshot
-                                        screenShotFinishHander!()
-                                    } content: { style in
-                                        MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false))
-                                    }
-                                } else if splittingMethod == .byCharacter {
-                                    if chatDatasSplittedByCharacter.count != 0 {
-                                        ForEach(0..<chatDatasSplittedByCharacter.count, id: \.self) { i in
-                                            VStack {
-                                                Text("图片 #\(i + 1)")
-                                                ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
-                                                    exportingImage = screenshot
-                                                    debugPrint("ScreenShot \(i)")
-                                                    screenShotFinishHander!()
-                                                } content: { style in
-                                                    MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
-                                                        var rangeStart = 0
-                                                        for j in 0..<i {
-                                                            rangeStart += chatDatasSplittedByCharacter[j].count
-                                                        }
-                                                        let rangeEnd = rangeStart + chatDatasSplittedByCharacter[i].count - 1
-                                                        return rangeStart...rangeEnd
-                                                    }())
+                                VStack {
+                                    if splittingMethod == .none {
+                                        ScreenshotableView(shotting: $isScreenShotting[0]) { screenshot in
+                                            exportingImage = screenshot
+                                            screenShotFinishHander!()
+                                        } content: { style in
+                                            MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false))
+                                        }
+                                    } else if splittingMethod == .byCharacter {
+                                        if chatDatasSplittedByCharacter.count != 0 {
+                                            ForEach(0..<chatDatasSplittedByCharacter.count, id: \.self) { i in
+                                                VStack {
+                                                    Text("图片 #\(i + 1)")
+                                                    ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
+                                                        exportingImage = screenshot
+                                                        debugPrint("ScreenShot \(i)")
+                                                        screenShotFinishHander!()
+                                                    } content: { style in
+                                                        MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
+                                                            var rangeStart = 0
+                                                            for j in 0..<i {
+                                                                rangeStart += chatDatasSplittedByCharacter[j].count
+                                                            }
+                                                            let rangeEnd = rangeStart + chatDatasSplittedByCharacter[i].count - 1
+                                                            return rangeStart...rangeEnd
+                                                        }())
+                                                    }
+                                                    Divider()
                                                 }
                                             }
                                         }
-                                    }
-                                } else if splittingMethod == .byIndex {
-                                    if chatDatasSplittedByIndex.count != 0 {
-                                        ForEach(0..<chatDatasSplittedByIndex.count, id: \.self) { i in
-                                            VStack {
-                                                Text("图片 #\(i + 1)")
-                                                ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
-                                                    exportingImage = screenshot
-                                                    screenShotFinishHander!()
-                                                } content: { style in
-                                                    MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
-                                                        var rangeStart = 0
-                                                        for j in 0..<i {
-                                                            rangeStart += chatDatasSplittedByIndex[j].count
-                                                        }
-                                                        let rangeEnd = rangeStart + chatDatasSplittedByIndex[i].count - 1
-                                                        return rangeStart...rangeEnd
-                                                    }())
+                                    } else if splittingMethod == .byIndex {
+                                        if chatDatasSplittedByIndex.count != 0 {
+                                            ForEach(0..<chatDatasSplittedByIndex.count, id: \.self) { i in
+                                                VStack {
+                                                    Text("图片 #\(i + 1)")
+                                                    ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
+                                                        exportingImage = screenshot
+                                                        screenShotFinishHander!()
+                                                    } content: { style in
+                                                        MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
+                                                            var rangeStart = 0
+                                                            for j in 0..<i {
+                                                                rangeStart += chatDatasSplittedByIndex[j].count
+                                                            }
+                                                            let rangeEnd = rangeStart + chatDatasSplittedByIndex[i].count - 1
+                                                            return rangeStart...rangeEnd
+                                                        }())
+                                                    }
                                                 }
                                             }
                                         }
@@ -864,6 +910,7 @@ struct MTEditorView: View {
                                         }
                                         isScreenShotting[0] = true
                                     } else {
+                                        // FIXME: Some Images were Splitted
                                         let alert = AlertAppleMusic17View(title: "导出...", subtitle: "正在导出图片到相册...", icon: .spinnerSmall, duration: 2)
                                         alert.haptic = .warning
                                         let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first

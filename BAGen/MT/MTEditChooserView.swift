@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct MTEditChooserView: View {
     @AppStorage("MTIsFirstUsing") var isFirstUsing = true
     @State var projNames = [String]()
     @State var newProjNameCache = ""
+    @State var isImportDocPickerPresented = false
     var body: some View {
         ZStack {
             Image("GlobalBGImage")
@@ -40,8 +42,45 @@ struct MTEditChooserView: View {
                                     .fill(Color(hex: 0x274366))
                                     .frame(width: 250, height: 24)
                                 BAText("聊天目录", fontSize: 17, textColor: .white, isSystemd: true)
+                                    .offset(x: -10)
                                 HStack {
                                     Spacer()
+                                    Button(action: {
+                                        isImportDocPickerPresented = true
+                                    }, label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color(hex: 0x3D578D))
+                                                .frame(width: 35, height: 35)
+                                            Image(systemName: "square.and.arrow.down")
+                                                .font(.system(size: 20, weight: .bold))
+                                                .foregroundColor(.white)
+                                        }
+                                    })
+                                    .fileImporter(isPresented: $isImportDocPickerPresented, allowedContentTypes: [.sapm]) { result in
+                                        switch result {
+                                        case .success(let fUrl):
+//                                            let destinationURL = FileManager.default.temporaryDirectory.appendingPathComponent(fUrl.lastPathComponent)
+//                                            if FileManager.default.fileExists(atPath: destinationURL.path) {
+//                                                try! FileManager.default.removeItem(at: destinationURL)
+//                                            }
+//                                            try! FileManager.default.copyItem(at: fUrl, to: destinationURL)
+//                                            try! FileManager.default.copyItem(at: destinationURL, to: AppFileManager(path: "MTProj").GetPath(String(fUrl.path.split(separator: "/").last!)).url)
+                                            _ = fUrl.startAccessingSecurityScopedResource()
+                                            do {
+                                                try FileManager.default.copyItem(at: fUrl, to: AppFileManager(path: "MTProj").GetPath(String(fUrl.path.split(separator: "/").last!)).url)
+                                            } catch {
+                                                debugPrint(error)
+                                            }
+                                            fUrl.stopAccessingSecurityScopedResource()
+                                            projNames.removeAll()
+                                            for pn in AppFileManager(path: "MTProj").GetRoot() ?? [[String: String]]() {
+                                                projNames.append(pn["name"]!)
+                                            }
+                                        case .failure(let error):
+                                            debugPrint(error)
+                                        }
+                                    }
                                     Button(action: {
                                         globalAlertContent = {
                                             AnyView(

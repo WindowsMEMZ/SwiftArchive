@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "attributedstring",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lixiang1994/AttributedString",
+      "state" : {
+        "revision" : "1aa8728d33d0cd1588d1de999f04fd9053c0df36",
+        "version" : "3.3.5"
+      }
+    },
+    {
       "identity" : "darockkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Darock-Studio/DarockKit",
