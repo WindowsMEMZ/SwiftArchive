@@ -4,6 +4,8 @@
 
 [![License](https://img.shields.io/github/license/WindowsMEMZ/SwiftArchive)](LICENSE)&nbsp;
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)&nbsp;
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/WindowsMEMZ/SwiftArchive)&nbsp;
+
 
 ## TODO
 - [x] Momotalk 编辑器主体

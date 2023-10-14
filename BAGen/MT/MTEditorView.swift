@@ -727,6 +727,7 @@ struct MTEditorView: View {
                         Section(header: Text("高级")) {
                             Button(action: {
                                 if isEditRawTipped {
+                                    SaveProject()
                                     isRawEditorPresented = true
                                 } else {
                                     DarockKit.UIAlert.shared.presentAlert(title: "注意", subtitle: "编辑源文件可能导致项目损坏\n仅适合高级用户\n再次单击以编辑", icon: .none, style: .iOS17AppleMusic, haptic: .warning, duration: 3)
