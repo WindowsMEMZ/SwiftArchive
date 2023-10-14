@@ -15,12 +15,12 @@
 - [ ] 剧情编辑器导出(视频)
 
 ## 安装
-### 方案一(TestFlight)
+### 方案一(TestFlight) [推荐]
 [Public Beta(推荐)](https://testflight.apple.com/join/JLFPR0qe)  包含较新的功能, 经过部分测试, 问题较少, 但仍可能会发生一些问题. 一般情况与 GitHub `Release` 保持同步.
 [Developer Beta](https://testflight.apple.com/join/C9VEKrC8)  未经测试的所有代码更新提交, 可能会有严重崩溃甚至丢失数据的可能. 一般情况与`main`分支保持同步.
 ### 方案二(自签)
 在GitHub项目`Release`页下载ipa并自行签名
-### 方案三(自编译) [当前推荐]
+### 方案三(自编译)
 `clone`本库, 并自行在Xcode中编译
 ### 值得注意的地方
 当前无需下载资源, 首次打开提示下载资源时可选择取消.
