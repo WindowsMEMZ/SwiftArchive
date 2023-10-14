@@ -11,6 +11,7 @@
 ![GitHub tag](https://img.shields.io/github/v/tag/WindowsMEMZ/SwiftArchive?label=Latest%20Tag)&nbsp;
 ![GitHub Release Date](https://img.shields.io/github/release-date-pre/WindowsMEMZ/SwiftArchive?label=Latest%20Release%20Date)&nbsp;
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/WindowsMEMZ/SwiftArchive/main?label=Main%20Branch%20Last%20Commit)&nbsp;
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/WindowsMEMZ/SwiftArchive/ios.yml)
 
 ## TODO
 - [x] Momotalk 编辑器主体
