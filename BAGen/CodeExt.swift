@@ -5,6 +5,7 @@
 //  Created by WindowsMEMZ on 2023/10/1.
 //
 
+import Photos
 import SwiftUI
 import DarockKit
 import Foundation
@@ -184,4 +185,21 @@ extension View {
             view?.drawHierarchy(in: controller.view.bounds, afterScreenUpdates: true)
         }
     }
+}
+
+func saveImageToPhotoLibrary(image: UIImage) {
+    PHPhotoLibrary.shared().performChanges {
+        PHAssetChangeRequest.creationRequestForAsset(from: image)
+    } completionHandler: { success, error in
+        if success {
+            print("图片已成功保存到相册。")
+        } else if let error = error {
+            print("保存图片到相册时发生错误: \(error)")
+        }
+    }
+}
+
+func msleep(_ milliseconds: UInt32) {
+    let microseconds = milliseconds * 1000 // 将毫秒转换为微秒
+    usleep(microseconds)
 }

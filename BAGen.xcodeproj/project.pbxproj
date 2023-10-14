@@ -18,6 +18,7 @@
 		6BD5A6322AC988E7004B05F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BD5A6312AC988E7004B05F9 /* Assets.xcassets */; };
 		6BD5A6352AC988E7004B05F9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BD5A6342AC988E7004B05F9 /* Preview Assets.xcassets */; };
 		6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6BD5A63C2AC98912004B05F9 /* DarockKit */; };
+		8C2315DA2AD98C0A00AE96EE /* ScreenshotableView in Frameworks */ = {isa = PBXBuildFile; productRef = 8C2315D92AD98C0A00AE96EE /* ScreenshotableView */; };
 		8C42796A2ACD9DB4007A367C /* EachCharactersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4279692ACD9DB4007A367C /* EachCharactersView.swift */; };
 		8CCA6F0C2ACEB7DA0008CC4A /* ClanChat_Emoji_120_Jp.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6C812ACEB7D90008CC4A /* ClanChat_Emoji_120_Jp.png */; };
 		8CCA6F0D2ACEB7DA0008CC4A /* ClanChat_Emoji_83_Jp.png in Resources */ = {isa = PBXBuildFile; fileRef = 8CCA6C822ACEB7D90008CC4A /* ClanChat_Emoji_83_Jp.png */; };
@@ -1379,6 +1380,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C2315DA2AD98C0A00AE96EE /* ScreenshotableView in Frameworks */,
 				6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */,
 				6BB0220E2AC9B93D00460189 /* ZipArchive in Frameworks */,
 			);
@@ -2175,6 +2177,7 @@
 			packageProductDependencies = (
 				6BD5A63C2AC98912004B05F9 /* DarockKit */,
 				6BB0220D2AC9B93D00460189 /* ZipArchive */,
+				8C2315D92AD98C0A00AE96EE /* ScreenshotableView */,
 			);
 			productName = BAGen;
 			productReference = 6BD5A62A2AC988E6004B05F9 /* BAGen.app */;
@@ -2208,6 +2211,7 @@
 			packageReferences = (
 				6BD5A63B2AC98912004B05F9 /* XCRemoteSwiftPackageReference "DarockKit" */,
 				6BB0220C2AC9B93D00460189 /* XCRemoteSwiftPackageReference "ZipArchive" */,
+				8C2315D82AD98C0A00AE96EE /* XCRemoteSwiftPackageReference "ScreenshotableView" */,
 			);
 			productRefGroup = 6BD5A62B2AC988E6004B05F9 /* Products */;
 			projectDirPath = "";
@@ -3043,7 +3047,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = BAGen/BAGen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"BAGen/Preview Content\"";
 				DEVELOPMENT_TEAM = B57D8PP775;
 				ENABLE_PREVIEWS = YES;
@@ -3051,12 +3055,14 @@
 				INFOPLIST_FILE = BAGen/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SwiftArchive;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "SwiftArchive 为了导出图片而希望获取相册添加权限";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -3080,7 +3086,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = BAGen/BAGen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"BAGen/Preview Content\"";
 				DEVELOPMENT_TEAM = B57D8PP775;
 				ENABLE_PREVIEWS = YES;
@@ -3088,12 +3094,14 @@
 				INFOPLIST_FILE = BAGen/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SwiftArchive;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "SwiftArchive 为了导出图片而希望获取相册添加权限";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -3150,6 +3158,14 @@
 				kind = branch;
 			};
 		};
+		8C2315D82AD98C0A00AE96EE /* XCRemoteSwiftPackageReference "ScreenshotableView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RickeyBoy/ScreenshotableView";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -3162,6 +3178,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6BD5A63B2AC98912004B05F9 /* XCRemoteSwiftPackageReference "DarockKit" */;
 			productName = DarockKit;
+		};
+		8C2315D92AD98C0A00AE96EE /* ScreenshotableView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8C2315D82AD98C0A00AE96EE /* XCRemoteSwiftPackageReference "ScreenshotableView" */;
+			productName = ScreenshotableView;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -8,6 +8,7 @@
 import SwiftUI
 import DarockKit
 import SwiftyJSON
+import ScreenshotableView
 
 // 文件格式:
 // 文本对话: {角色 ID(String)}|{头像组下标(Int)}|{内容}|{ShowldShowAsNew(Bool)}
@@ -140,127 +141,91 @@ struct MTEditorView: View {
         @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
         @Binding var currentSelectCharacterImageGroupIndex: Int
         @Binding var isInserting: Bool
+        var displayMessageIndexRange: ClosedRange<Int>? = nil
         var body: some View {
-            ForEach(0..<fullProjData!.chatData.count, id: \.self) { i in
-                if fullProjData!.chatData[i].characterId == "Sensei" {
-                    HStack {
-                        Spacer()
-                        HStack(alignment: .top) {
-                            if !fullProjData!.chatData[i].isImage {
-                                BAText(fullProjData!.chatData[i].content, fontSize: 20, textColor: .white, isSystemd: true, isBold: false)
-                                    .padding(10)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 7)
-                                            .fill(Color(hex: 0x417FC3))
-                                    }
-                            } else {
-                                
-                            }
-                            if fullProjData!.chatData[i].showldShowAsNew {
-                                Triangle()
-                                    .fill(Color(hex: 0x417FC3))
-                                    .frame(width: 8, height: 6)
-                                    .rotationEffect(.degrees(90))
-                                    .offset(x: -10, y: 10)
-                                    .padding(0)
-                            } else {
-                                Spacer()
-                                    .frame(width: 16)
-                            }
-                        }
-                        .onTapGesture {
-                            if isInserting {
-                                fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
-                                    if let upMessage = fullProjData!.chatData.last {
-                                        if upMessage.characterId == currentSelectCharacterData.id {
-                                            return false
-                                        } else {
-                                            return true
-                                        }
-                                    } else {
-                                        return true
-                                    }
-                                }()), at: i + 1)
-                                isInserting = false
-                                newMessageTextCache = ""
-                            } else {
-                                DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
-                            }
-                        }
-                        .onLongPressGesture(minimumDuration: 2) {
-                            fullProjData!.chatData.remove(at: i)
-                        }
-                    }
-                    .padding(.horizontal, 10)
-                    .frame(maxWidth: UIScreen.main.bounds.height - 50)
-                } else if fullProjData!.chatData[i].characterId == "SpecialEvent" {
-                    HStack {
-                        Spacer()
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color(hex: 0xFCEBF0))
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color(hex: 0xCDCDCD), lineWidth: 1)
-                                }
-                                .frame(width: 180, height: 60)
+            VStack {
+                ForEach(0..<fullProjData!.chatData.count, id: \.self) { i in
+                    if displayMessageIndexRange == nil || (displayMessageIndexRange ?? 0...1).contains(i) {
+                        if fullProjData!.chatData[i].characterId == "Sensei" {
                             HStack {
                                 Spacer()
-                                Image(systemName: "heart.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(Color(hex: 0xFFCBD6))
-                                    .offset(x: 20)
-                            }
-                        }
-                        .frame(width: 180, height: 60)
-                        Spacer()
-                            .frame(width: 10)
-                    }
-                } else if fullProjData!.chatData[i].characterId == "System" {
-                    
-                } else {
-                    HStack {
-                        let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
-                        if fullProjData!.chatData[i].showldShowAsNew {
-                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "png")!))!)
-                                .resizable()
-                                .frame(width: 50, height: 50)
-                                .clipShape(Circle())
-                        } else {
-                            Circle()
-                                .fill(Color.clear)
-                                .frame(width: 50, height: 50)
-                        }
-                        VStack {
-                            if fullProjData!.chatData[i].showldShowAsNew {
-                                BAText(thisCharacterData.shortName, fontSize: 18, isSystemd: true)
-                                    .padding(0)
-                                    .offset(x: -3, y: 5)
-                            }
-                            HStack(alignment: .top) {
-                                if fullProjData!.chatData[i].showldShowAsNew {
-                                    Triangle()
-                                        .fill(Color(hex: 0x435165))
-                                        .frame(width: 8, height: 6)
-                                        .rotationEffect(.degrees(-90))
-                                        .offset(x: 10, y: 10)
-                                        .padding(0)
-                                } else {
-                                    Spacer()
-                                        .frame(width: 25)
+                                HStack(alignment: .top) {
+                                    if !fullProjData!.chatData[i].isImage {
+                                        BAText(fullProjData!.chatData[i].content, fontSize: 18, textColor: .white, isSystemd: true, isBold: false)
+                                            .padding(10)
+                                            .background {
+                                                RoundedRectangle(cornerRadius: 7)
+                                                    .fill(Color(hex: 0x417FC3))
+                                            }
+                                    } else {
+                                        
+                                    }
+                                    if fullProjData!.chatData[i].showldShowAsNew {
+                                        Triangle()
+                                            .fill(Color(hex: 0x417FC3))
+                                            .frame(width: 8, height: 6)
+                                            .rotationEffect(.degrees(90))
+                                            .offset(x: -10, y: 10)
+                                            .padding(0)
+                                    } else {
+                                        Spacer()
+                                            .frame(width: 16)
+                                    }
                                 }
-                                if !fullProjData!.chatData[i].isImage {
-                                    BAText(fullProjData!.chatData[i].content, fontSize: 20, textColor: .white, isSystemd: true, isBold: false)
-                                        .padding(10)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 7)
-                                                .fill(Color(hex: 0x435165))
+                                .onTapGesture {
+                                    if isInserting {
+                                        fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                            if let upMessage = fullProjData!.chatData.last {
+                                                if upMessage.characterId == currentSelectCharacterData.id {
+                                                    return false
+                                                } else {
+                                                    return true
+                                                }
+                                            } else {
+                                                return true
+                                            }
+                                        }()), at: i + 1)
+                                        isInserting = false
+                                        newMessageTextCache = ""
+                                    } else {
+                                        DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
+                                    }
+                                }
+                                .onLongPressGesture(minimumDuration: 2) {
+                                    fullProjData!.chatData.remove(at: i)
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .frame(maxWidth: UIScreen.main.bounds.height - 50)
+                        } else if fullProjData!.chatData[i].characterId == "SpecialEvent" {
+                            HStack {
+                                Spacer()
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color(hex: 0xFCEBF0))
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(Color(hex: 0xCDCDCD), lineWidth: 1)
                                         }
-                                } else {
-                                    
+                                        .frame(width: 180, height: 60)
+                                    HStack {
+                                        Spacer()
+                                        Image(systemName: "heart.fill")
+                                            .font(.system(size: 32))
+                                            .foregroundColor(Color(hex: 0xFFCBD6))
+                                            .offset(x: 20)
+                                    }
                                 }
+                                .frame(width: 180, height: 60)
+                                Spacer()
+                                    .frame(width: 10)
                             }
-                            .offset(x: -5)
+                        } else if fullProjData!.chatData[i].characterId == "System" {
+                            HStack {
+                                Spacer()
+                                BAText(fullProjData!.chatData[i].content, fontSize: 16, textColor: Color(hex: 0x3C454F), isSystemd: true)
+                                Spacer()
+                            }
                             .onTapGesture {
                                 if isInserting {
                                     fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
@@ -283,13 +248,85 @@ struct MTEditorView: View {
                             .onLongPressGesture(minimumDuration: 2) {
                                 fullProjData!.chatData.remove(at: i)
                             }
+                        } else {
+                            HStack {
+                                let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
+                                if fullProjData!.chatData[i].showldShowAsNew {
+                                    Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "png")!))!)
+                                        .resizable()
+                                        .frame(width: 50, height: 50)
+                                        .clipShape(Circle())
+                                } else {
+                                    Circle()
+                                        .fill(Color.clear)
+                                        .frame(width: 50, height: 50)
+                                }
+                                VStack {
+                                    if fullProjData!.chatData[i].showldShowAsNew {
+                                        HStack {
+                                            BAText(thisCharacterData.shortName, fontSize: 16, isSystemd: true)
+                                                .padding(0)
+                                                .offset(x: 3, y: 5)
+                                            Spacer()
+                                        }
+                                    }
+                                    HStack(alignment: .top) {
+                                        if fullProjData!.chatData[i].showldShowAsNew {
+                                            Triangle()
+                                                .fill(Color(hex: 0x435165))
+                                                .frame(width: 8, height: 6)
+                                                .rotationEffect(.degrees(-90))
+                                                .offset(x: 10, y: 10)
+                                                .padding(0)
+                                        } else {
+                                            Spacer()
+                                                .frame(width: 25)
+                                        }
+                                        if !fullProjData!.chatData[i].isImage {
+                                            BAText(fullProjData!.chatData[i].content, fontSize: 18, textColor: .white, isSystemd: true, isBold: false)
+                                                .padding(10)
+                                                .background {
+                                                    RoundedRectangle(cornerRadius: 7)
+                                                        .fill(Color(hex: 0x435165))
+                                                }
+                                        } else {
+                                            
+                                        }
+                                        Spacer()
+                                    }
+                                    .offset(x: -10)
+                                    .onTapGesture {
+                                        if isInserting {
+                                            fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                                if let upMessage = fullProjData!.chatData.last {
+                                                    if upMessage.characterId == currentSelectCharacterData.id {
+                                                        return false
+                                                    } else {
+                                                        return true
+                                                    }
+                                                } else {
+                                                    return true
+                                                }
+                                            }()), at: i + 1)
+                                            isInserting = false
+                                            newMessageTextCache = ""
+                                        } else {
+                                            DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
+                                        }
+                                    }
+                                    .onLongPressGesture(minimumDuration: 2) {
+                                        fullProjData!.chatData.remove(at: i)
+                                    }
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal, 10)
+                            .frame(maxWidth: UIScreen.main.bounds.height - 50)
                         }
-                        Spacer()
                     }
-                    .padding(.horizontal, 10)
-                    .frame(maxWidth: UIScreen.main.bounds.height - 50)
                 }
             }
+            .background(Color(hex: 0xFFF6DD))
         }
     }
     
@@ -500,7 +537,9 @@ struct MTEditorView: View {
                     List {
                         TextField("系统消息", text: $systemMessageInputCache)
                             .onSubmit {
-                                
+                                fullProjData!.chatData.append(.init(characterId: "System", imageGroupIndex: 0, isImage: false, content: systemMessageInputCache, showldShowAsNew: true))
+                                systemMessageInputCache = ""
+                                dismiss()
                             }
                         Button(action: {
                             if !isIgnoreSpecialEventTip {
@@ -593,21 +632,22 @@ struct MTEditorView: View {
             @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
             @Binding var currentSelectCharacterImageGroupIndex: Int
             @Environment(\.dismiss) var dismiss
-            @State var isExportAsImageTipPresented = false
+            @State var isExportAsImagePresented = false
+            @State var mViewImage = UIImage()
+            
             var body: some View {
                 NavigationView {
                     List {
                         Section(header: Text("导出")) {
                             Button(action: {
-                                //isExportAsImageTipPresented = true
-                                dismiss()
+                                isExportAsImagePresented = true
                             }, label: {
                                 Text("图片...")
                             })
-                            .sheet(isPresented: $isExportAsImageTipPresented, onDismiss: {
+                            .sheet(isPresented: $isExportAsImagePresented, onDismiss: {
                                 dismiss()
-                            }, content: {ExportAsImageTipView()})
-                            Image(uiImage: MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false)).snapshot())
+                            }, content: {ExportAsImageView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex)})
+                            Image(uiImage: mViewImage)
                                 .resizable()
                         }
                         
@@ -661,13 +701,221 @@ struct MTEditorView: View {
                 }
             }
             
-            struct ExportAsImageTipView: View {
+            struct ExportAsImageView: View {
+                @Binding var fullProjData: MTBase.FullData?
+                @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
+                @Binding var currentSelectCharacterImageGroupIndex: Int
+                @State var isScreenShotting = [false]
+                @State var splittingMethod = ImageExportSplittingMethod.none
+                @State var splitByIndexInput = "5"
+                @State var splittingIndexInterval = 5
+                @State var chatDatasSplittedByCharacter = [[MTBase.SingleChatData]]()
+                @State var chatDatasSplittedByIndex = [[MTBase.SingleChatData]]()
+                @State var exportingImage = UIImage()
+                @State var screenShotFinishHander: (() -> Void)? = nil
                 var body: some View {
-                    VStack {
-                        Text("导出为图片")
-                            .font(.system(size: 22, weight: .bold))
-                        //Text("导出时屏幕会自动滚动以获取截图, 在")
+                    NavigationView {
+                        List {
+                            Section(header: Text("图片切割模式")) {
+                                Button(action: {
+                                    splittingMethod = .none
+                                }, label: {
+                                    HStack {
+                                        if splittingMethod == .none {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.blue)
+                                        }
+                                        Text("不切割")
+                                    }
+                                })
+                                Button(action: {
+                                    isScreenShotting.removeAll()
+                                    for _ in chatDatasSplittedByCharacter {
+                                        isScreenShotting.append(false)
+                                    }
+                                    splittingMethod = .byCharacter
+                                }, label: {
+                                    HStack {
+                                        if splittingMethod == .byCharacter {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.blue)
+                                        }
+                                        Text("按照角色切割")
+                                    }
+                                })
+                                Button(action: {
+                                    splittingMethod = .byIndex
+                                    // Prepare Splited by Index Chat Datas
+                                    let fullChatDatas = fullProjData!.chatData
+                                    var addedCount = 0
+                                    var tmpChatDataSplitting = [MTBase.SingleChatData]()
+                                    for chatData in fullChatDatas {
+                                        if addedCount == splittingIndexInterval {
+                                            chatDatasSplittedByIndex.append(tmpChatDataSplitting)
+                                            tmpChatDataSplitting.removeAll()
+                                            addedCount = 0
+                                        }
+                                        tmpChatDataSplitting.append(chatData)
+                                        addedCount += 1
+                                    }
+                                    isScreenShotting.removeAll()
+                                    for _ in chatDatasSplittedByIndex {
+                                        isScreenShotting.append(false)
+                                    }
+                                }, label: {
+                                    HStack {
+                                        if splittingMethod == .byIndex {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.blue)
+                                        }
+                                        Text("按照消息数切割")
+                                    }
+                                })
+                                if splittingMethod == .byIndex {
+                                    HStack {
+                                        Text("每")
+                                        TextField("", text: $splitByIndexInput)
+                                            .keyboardType(.numberPad)
+                                            .onChange(of: splitByIndexInput) { _ in
+                                                if let intedInput = Int(splitByIndexInput) {
+                                                    splittingIndexInterval = intedInput
+                                                    // Prepare Splited by Index Chat Datas
+                                                    let fullChatDatas = fullProjData!.chatData
+                                                    var addedCount = 0
+                                                    var tmpChatDataSplitting = [MTBase.SingleChatData]()
+                                                    for chatData in fullChatDatas {
+                                                        if addedCount == splittingIndexInterval {
+                                                            chatDatasSplittedByIndex.append(tmpChatDataSplitting)
+                                                            tmpChatDataSplitting.removeAll()
+                                                            addedCount = 0
+                                                        }
+                                                        tmpChatDataSplitting.append(chatData)
+                                                        addedCount += 1
+                                                    }
+                                                    isScreenShotting.removeAll()
+                                                    for _ in chatDatasSplittedByIndex {
+                                                        isScreenShotting.append(false)
+                                                    }
+                                                }
+                                            }
+                                        Text("条消息进行切割")
+                                    }
+                                }
+                            }
+                            Section(header: Text("预览")) {
+                                if splittingMethod == .none {
+                                    ScreenshotableView(shotting: $isScreenShotting[0]) { screenshot in
+                                        exportingImage = screenshot
+                                        screenShotFinishHander!()
+                                    } content: { style in
+                                        MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false))
+                                    }
+                                } else if splittingMethod == .byCharacter {
+                                    if chatDatasSplittedByCharacter.count != 0 {
+                                        ForEach(0..<chatDatasSplittedByCharacter.count, id: \.self) { i in
+                                            VStack {
+                                                Text("图片 #\(i + 1)")
+                                                ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
+                                                    exportingImage = screenshot
+                                                    debugPrint("ScreenShot \(i)")
+                                                    screenShotFinishHander!()
+                                                } content: { style in
+                                                    MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
+                                                        var rangeStart = 0
+                                                        for j in 0..<i {
+                                                            rangeStart += chatDatasSplittedByCharacter[j].count
+                                                        }
+                                                        let rangeEnd = rangeStart + chatDatasSplittedByCharacter[i].count - 1
+                                                        return rangeStart...rangeEnd
+                                                    }())
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else if splittingMethod == .byIndex {
+                                    if chatDatasSplittedByIndex.count != 0 {
+                                        ForEach(0..<chatDatasSplittedByIndex.count, id: \.self) { i in
+                                            VStack {
+                                                Text("图片 #\(i + 1)")
+                                                ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
+                                                    exportingImage = screenshot
+                                                    screenShotFinishHander!()
+                                                } content: { style in
+                                                    MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
+                                                        var rangeStart = 0
+                                                        for j in 0..<i {
+                                                            rangeStart += chatDatasSplittedByIndex[j].count
+                                                        }
+                                                        let rangeEnd = rangeStart + chatDatasSplittedByIndex[i].count - 1
+                                                        return rangeStart...rangeEnd
+                                                    }())
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            Section(header: Text("完成导出")) {
+                                Button(action: {
+                                    if splittingMethod == .none {
+                                        screenShotFinishHander = {
+                                            saveImageToPhotoLibrary(image: exportingImage)
+                                            DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
+                                        }
+                                        isScreenShotting[0] = true
+                                    } else {
+                                        let alert = AlertAppleMusic17View(title: "导出...", subtitle: "正在导出图片到相册...", icon: .spinnerSmall, duration: 2)
+                                        alert.haptic = .warning
+                                        let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first
+                                        if let window = window {
+                                            alert.present(on: window)
+                                        }
+                                        for i in 0..<isScreenShotting.count {
+                                            if i != isScreenShotting.count - 1 {
+                                                screenShotFinishHander = {
+                                                    saveImageToPhotoLibrary(image: exportingImage)
+                                                }
+                                            } else {
+                                                screenShotFinishHander = {
+                                                    saveImageToPhotoLibrary(image: exportingImage)
+                                                    alert.dismiss()
+                                                    DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
+                                                }
+                                            }
+                                            isScreenShotting[i].toggle()
+                                        }
+                                    }
+                                }, label: {
+                                    Text("导出到相册...")
+                                })
+                            }
+                        }
+                        .navigationTitle("导出为图片")
                     }
+                    .onAppear {
+                        // Prepare Splited by Chatacter Chat Datas
+                        let fullChatDatas = fullProjData!.chatData
+                        var tmpChatDataSplitting = [MTBase.SingleChatData]()
+                        for chatData in fullChatDatas {
+                            if let cdl = tmpChatDataSplitting.last {
+                                if chatData.characterId == cdl.characterId {
+                                    tmpChatDataSplitting.append(chatData)
+                                } else {
+                                    chatDatasSplittedByCharacter.append(tmpChatDataSplitting)
+                                    tmpChatDataSplitting.removeAll()
+                                    tmpChatDataSplitting.append(chatData)
+                                }
+                            } else {
+                                tmpChatDataSplitting.append(chatData)
+                            }
+                        }
+                    }
+                }
+                
+                enum ImageExportSplittingMethod {
+                    case none
+                    case byCharacter
+                    case byIndex
                 }
             }
             
