@@ -5,7 +5,12 @@
 [![License](https://img.shields.io/github/license/WindowsMEMZ/SwiftArchive)](LICENSE)&nbsp;
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)&nbsp;
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/WindowsMEMZ/SwiftArchive)&nbsp;
-
+![GitHub repo size](https://img.shields.io/github/repo-size/WindowsMEMZ/SwiftArchive)&nbsp;
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/WindowsMEMZ/SwiftArchive)&nbsp;
+![Uptime Robot status](https://img.shields.io/uptimerobot/status/m794152937-528042e5aee699af3224e7a6?label=Darock%20Main%20API%20Status)&nbsp;
+![GitHub tag](https://img.shields.io/github/v/tag/WindowsMEMZ/SwiftArchive?label=Latest%20Tag)&nbsp;
+![GitHub Release Date](https://img.shields.io/github/release-date-pre/WindowsMEMZ/SwiftArchive?label=Latest%20Release%20Date)&nbsp;
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/WindowsMEMZ/SwiftArchive/main?label=Main%20Branch%20Last%20Commit)&nbsp;
 
 ## TODO
 - [x] Momotalk 编辑器主体
@@ -19,6 +24,7 @@
 ## 安装
 ### 方案一(TestFlight) [推荐]
 [Public Beta(推荐)](https://testflight.apple.com/join/JLFPR0qe)  包含较新的功能, 经过部分测试, 问题较少, 但仍可能会发生一些问题. 一般情况与 GitHub `Release` 保持同步.
+
 [Developer Beta](https://testflight.apple.com/join/C9VEKrC8)  未经测试的所有代码更新提交, 可能会有严重崩溃甚至丢失数据的可能. 一般情况与`main`分支保持同步.
 ### 方案二(自签)
 在GitHub项目`Release`页下载ipa并自行签名
