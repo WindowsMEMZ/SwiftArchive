@@ -8,8 +8,16 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @AppStorage("IsAllowIntoDevelopingArea") var isAllowIntoDevelopingArea = false
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationView {
+            List {
+                Section(header: Text("高级")) {
+                    Toggle("开发区域访问", isOn: $isAllowIntoDevelopingArea)
+                }
+            }
+            .navigationTitle("设置")
+        }
     }
 }
 

@@ -20,11 +20,12 @@ struct TypeChooseView: View {
                 HStack {
                     Group {
                         AButton(action: {
-                            if resVersion != 0 {
-                                nowScene = .FSEditChooser
-                            } else {
-                                DarockKit.UIAlert.shared.presentAlert(title: "无法使用剧情编辑器", subtitle: "未下载附加资源", icon: .error, style: .iOS17AppleMusic, haptic: .error)
-                            }
+//                            if resVersion != 0 {
+//                                nowScene = .FSEditChooser
+//                            } else {
+//                                DarockKit.UIAlert.shared.presentAlert(title: "无法使用剧情编辑器", subtitle: "未下载附加资源", icon: .error, style: .iOS17AppleMusic, haptic: .error)
+//                            }
+                            DarockKit.UIAlert.shared.presentAlert(title: "无法使用剧情编辑器", subtitle: "剧情编辑器当前不可用", icon: .error, style: .iOS17AppleMusic, haptic: .error)
                         }, label: {
                             BAText("剧情编辑器", fontSize: 30, isSystemd: true)
                         })
