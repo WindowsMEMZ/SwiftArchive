@@ -37,7 +37,7 @@ jobs:
           
       - name: Archive
         run: |
-          xcodebuild -scheme BAGen -configuration Release DEVELOPMENT_TEAM=B57D8PP775 -sdk 'iphoneos' -destination 'generic/platform=iOS' -archivePath app.xcarchive PROVISIONING_PROFILE=d051bf09-1dcb-42f2-bffa-2a00784fd9d7 clean archive CODE_SIGN_IDENTITY="Apple Development: Yuxuan Chen (8CZ4JT4F3M)"
+          xcodebuild -scheme BAGen -configuration Release DEVELOPMENT_TEAM=B57D8PP775 -sdk 'iphoneos' -destination 'generic/platform=iOS' -archivePath app.xcarchive PROVISIONING_PROFILE=d051bf09-1dcb-42f2-bffa-2a00784fd9d7 clean archive CODE_SIGN_IDENTITY="Apple Development"
         
       - name: Export IPA
         run: xcodebuild -exportArchive -archivePath app.xcarchive -exportPath ./ -exportOptionsPlist ExportOptions.plist
