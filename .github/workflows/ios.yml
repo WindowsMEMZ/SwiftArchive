@@ -48,7 +48,7 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
           
       - name: Archive
-        run: xcodebuild archive -scheme "BAGen" -archivePath ios.xcarchive -allowProvisioningUpdates
+        run: xcodebuild archive -scheme "BAGen" -archivePath ios.xcarchive
         
       - name: Export IPA
         run: xcodebuild -exportArchive -archivePath ios.xcarchive -exportPath ./ -exportOptionsPlist ExportOptions.plist
