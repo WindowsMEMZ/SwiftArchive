@@ -104,7 +104,7 @@ struct ContentView: View {
                                                         VStack {
                                                             Spacer()
                                                                 .frame(height: 20)
-                                                            BAText("需要下载约3GB的附加资源\n跳过下载将导致部分功能不可用", fontSize: 20, isSystemd: true)
+                                                            BAText("需要下载约3GB的附加资源\n跳过下载将导致部分功能不可用\n(注:当前并未使用此资源, 可跳过下载)", fontSize: 20, isSystemd: true)
                                                             HStack {
                                                                 BAButton(action: {
                                                                     isSkippedDownload = true

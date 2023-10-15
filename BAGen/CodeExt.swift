@@ -84,6 +84,7 @@ private func drawOutlineAttributedString(
 ///   - navigationTitle: 导航文本
 /// - Returns: 视图
 @ViewBuilder func BATopBar(backAction: (() -> Void)? = nil, navigationTitle: String? = nil) -> some View {
+    @State var isSettingsPresented = false
     ZStack {
         RoundedRectangle(cornerRadius: 8)
             .fill(Color(hex: 0xF7F9F9))
@@ -154,13 +155,14 @@ private func drawOutlineAttributedString(
                     .foregroundColor(Color(hex: 0xD0D4D9))
             }
             Button(action: {
-                
+                isSettingsPresented = true
             }, label: {
                 Image(systemName: "gearshape.fill")
                     .resizable()
                     .frame(width: 20, height: 20)
                     .foregroundColor(Color(hex: 0x3D578D))
             })
+            .fullScreenCover(isPresented: $isSettingsPresented, content: {SettingsView()})
             Spacer()
                 .frame(width: 10)
         }
