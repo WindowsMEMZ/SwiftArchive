@@ -26,23 +26,34 @@ jobs:
           
           echo -n "$ASCAPI_KEY" > $KEY_PATH
 
-      - name: Build resolve Swift dependencies
+      - name: Resolve Swift dependencies
         run: xcodebuild -resolvePackageDependencies -scheme BAGen -configuration Debug
 
-      - name: Archive
+      - name: Archive SwiftArchive App
         env:
           ASCAPI_KEY_ID: ${{ secrets.ASCAPI_KEY_ID }}
           ASCAPI_ISSUER_ID: ${{ secrets.ASCAPI_ISSUER_ID }}
         run: |
           KEY_PATH=$RUNNER_TEMP/ascapi-key.p8
           
-          xcodebuild -scheme BAGen -configuration Debug DEVELOPMENT_TEAM=B57D8PP775 -sdk 'iphoneos' -destination 'generic/platform=iOS' -archivePath app.xcarchive clean archive CODE_SIGN_IDENTITY="Apple Development" -allowProvisioningUpdates -authenticationKeyPath $KEY_PATH -authenticationKeyID $ASCAPI_KEY_ID -authenticationKeyIssuerID $ASCAPI_ISSUER_ID
-      
+          xcodebuild -scheme BAGen -configuration Debug DEVELOPMENT_TEAM=B57D8PP775 -sdk 'iphoneos' -destination 'generic/platform=iOS' -archivePath BAGen_Debug.xcarchive clean archive CODE_SIGN_IDENTITY="Apple Development" -allowProvisioningUpdates -authenticationKeyPath $KEY_PATH -authenticationKeyID $ASCAPI_KEY_ID -authenticationKeyIssuerID $ASCAPI_ISSUER_ID
+          xcodebuild -scheme BAGen -configuration Release DEVELOPMENT_TEAM=B57D8PP775 -sdk 'iphoneos' -destination 'generic/platform=iOS' -archivePath BAGen_Release.xcarchive clean archive CODE_SIGN_IDENTITY="Apple Development" -allowProvisioningUpdates -authenticationKeyPath $KEY_PATH -authenticationKeyID $ASCAPI_KEY_ID -authenticationKeyIssuerID $ASCAPI_ISSUER_ID
+          
       - name: Export IPA
-        run: xcodebuild -exportArchive -archivePath app.xcarchive -exportPath ./ -exportOptionsPlist ExportOptions.plist
+        run: |
+          mkdir ./Export_Debug
+          mkdir ./Export_Release
+          xcodebuild -exportArchive -archivePath BAGen_Debug.xcarchive -exportPath ./Export_Debug -exportOptionsPlist ExportOptions.plist
+          xcodebuild -exportArchive -archivePath BAGen_Release.xcarchive -exportPath ./Export_Release -exportOptionsPlist ExportOptions.plist
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload Debug IPA
+        uses: actions/upload-artifact@v3
         with:
-          name: ipa
-          path: ./*.ipa
+          name: Debug.ipa
+          path: ./Export_Debug/BAGen.ipa
+
+      - name: Upload Release IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: Release.ipa
+          path: ./Export_Release/BAGen.ipa
