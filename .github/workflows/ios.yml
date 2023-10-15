@@ -36,10 +36,10 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/
           
       - name: Archive
-        run: xcodebuild archive -scheme "BAGen" -archivePath ios.xcarchive
+        run: xcodebuild -scheme BAGen -configuration Release DEVELOPMENT_TEAM=B57D8PP775 -sdk 'iphoneos' -destination 'generic/platform=iOS' -archivePath app.xcarchive PROVISIONING_PROFILE=d051bf09-1dcb-42f2-bffa-2a00784fd9d7 clean archive CODE_SIGN_IDENTITY="Apple Development: Yuxuan Chen (8CZ4JT4F3M)"
         
       - name: Export IPA
-        run: xcodebuild -exportArchive -archivePath ios.xcarchive -exportPath ./ -exportOptionsPlist ExportOptions.plist
+        run: xcodebuild -exportArchive -archivePath app.xcarchive -exportPath ./ -exportOptionsPlist ExportOptions.plist
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
