@@ -1374,6 +1374,7 @@
 		8CCFEBF32ACD1931003ADFEA /* NotoSansTC-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansTC-Medium.otf"; sourceTree = "<group>"; };
 		8CCFEBF42ACD1931003ADFEA /* NotoSansSC-Regular#6513.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Regular#6513.otf"; sourceTree = "<group>"; };
 		8CCFEC012ACD361A003ADFEA /* PathFileChooserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathFileChooserView.swift; sourceTree = "<group>"; };
+		8CE8F1552ADB8F520075B3FD /* ExportOptions.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = ExportOptions.plist; sourceTree = "<group>"; };
 		8CFC141D2ACE8F8E00DE14D7 /* MTEditChooserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTEditChooserView.swift; sourceTree = "<group>"; };
 		8CFC141F2ACE8FA000DE14D7 /* MTEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTEditorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1396,6 +1397,7 @@
 		6BD5A6212AC988E6004B05F9 = {
 			isa = PBXGroup;
 			children = (
+				8CE8F1552ADB8F520075B3FD /* ExportOptions.plist */,
 				6BD5A63F2AC991C9004B05F9 /* README.md */,
 				8CCFEBE32ACD1698003ADFEA /* BundleFiles */,
 				6BD5A62C2AC988E6004B05F9 /* BAGen */,
