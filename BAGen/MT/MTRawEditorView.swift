@@ -22,7 +22,7 @@ struct MTRawEditorView: View {
     @State var isCodeHelpPresented = false
     @State var codeIssues = [CodeIssue]()
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 HStack {
                     Spacer()

@@ -11,8 +11,8 @@ import SwiftyJSON
 import ScreenshotableView
 
 // 文件格式:
-// 文本对话: {角色 ID(String)}|{头像组下标(Int)}|{内容}|{ShowldShowAsNew(Bool)}
-// 图片:    {角色 ID(String)}|{头像组下标(Int)}|"%%TImage%%*"(图像标记){图像 Base64}|{ShowldShowAsNew(Bool)}
+// 文本对话: {角色 ID(String)}|{头像组下标(Int)}|{内容}|{ShouldShowAsNew(Bool)}
+// 图片:    {角色 ID(String)}|{头像组下标(Int)}|"%%TImage%%*"(图像标记){图像 Base64}|{ShouldShowAsNew(Bool)}
 // 按行分隔
 // 角色 ID 为 "Sensei" 时显示消息由我方发出
 // 角色 ID 为 "SpecialEvent" 使显示羁绊剧情, 此时内容为羁绊剧情对象
@@ -48,13 +48,14 @@ struct MTEditorView: View {
                 }
                 HStack {
                     TextField("消息", text: $newMessageTextCache)
+                        .textFieldStyle(.roundedBorder)
                         .submitLabel(.send)
                         .onSubmit {
                             if newMessageTextCache.isContainBads && !isTippedBads {
                                 isTippedBads = true
                                 DarockKit.UIAlert.shared.presentAlert(title: "不适宜词汇", subtitle: "我们在您的输入中发现了可能影响蔚蓝档案二创环境的词汇\n如果这是一次误报,或您执意添加此项,请再次轻点发送按钮", icon: .heart, style: .iOS17AppleMusic, haptic: .warning, duration: 7)
                             } else {
-                                fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: { () -> Bool in
                                     if let upMessage = fullProjData!.chatData.last {
                                         if upMessage.characterId == currentSelectCharacterData.id {
                                             return false
@@ -103,23 +104,17 @@ struct MTEditorView: View {
                         
                     }, content: {ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: $fullProjData, projName: projName)})
                 }
+                .padding(.horizontal)
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
-            AppDelegate.orientationLock = .portrait
-            UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-            UINavigationController.attemptRotationToDeviceOrientation()
-            // Wait to screen ratation Required
             Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
                 let fullFileContent = try! String(contentsOfFile: AppFileManager(path: "MTProj").GetFilePath(name: projName).path)
                 fullProjData = MTBase().toFullData(byString: fullFileContent)
             }
         }
         .onDisappear {
-            AppDelegate.orientationLock = .landscape
-            UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
-            UINavigationController.attemptRotationToDeviceOrientation()
-            
             mtIsHaveUnsavedChange = false
         }
     }
@@ -162,7 +157,7 @@ struct MTEditorView: View {
                                     } else {
                                         
                                     }
-                                    if fullProjData!.chatData[i].showldShowAsNew {
+                                    if fullProjData!.chatData[i].shouldShowAsNew {
                                         Triangle()
                                             .fill(Color(hex: 0x417FC3))
                                             .frame(width: 8, height: 6)
@@ -176,7 +171,7 @@ struct MTEditorView: View {
                                 }
                                 .onTapGesture {
                                     if isInserting {
-                                        fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                        fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: { () -> Bool in
                                             if let upMessage = fullProjData!.chatData.last {
                                                 if upMessage.characterId == currentSelectCharacterData.id {
                                                     return false
@@ -217,6 +212,7 @@ struct MTEditorView: View {
                                         Image(systemName: "heart.fill")
                                             .font(.system(size: 32))
                                             .foregroundColor(Color(hex: 0xFFCBD6))
+                                            .mask(alignment: .leading, { Rectangle().frame(width: 20) })
                                             .offset(x: 20)
                                     }
                                 }
@@ -233,7 +229,7 @@ struct MTEditorView: View {
                             }
                             .onTapGesture {
                                 if isInserting {
-                                    fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                    fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: { () -> Bool in
                                         if let upMessage = fullProjData!.chatData.last {
                                             if upMessage.characterId == currentSelectCharacterData.id {
                                                 return false
@@ -257,8 +253,8 @@ struct MTEditorView: View {
                             // MARK: Other Character Message View
                             HStack {
                                 let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
-                                if fullProjData!.chatData[i].showldShowAsNew {
-                                    Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "png")!))!)
+                                if fullProjData!.chatData[i].shouldShowAsNew {
+                                    Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "webp")!))!)
                                         .resizable()
                                         .frame(width: 50, height: 50)
                                         .clipShape(Circle())
@@ -269,7 +265,7 @@ struct MTEditorView: View {
                                 }
                                 VStack {
                                     // Character Name
-                                    if fullProjData!.chatData[i].showldShowAsNew {
+                                    if fullProjData!.chatData[i].shouldShowAsNew {
                                         HStack {
                                             BAText(thisCharacterData.shortName, fontSize: 16, isSystemd: true)
                                                 .padding(0)
@@ -279,7 +275,7 @@ struct MTEditorView: View {
                                     }
                                     HStack(alignment: .top) {
                                         // Message Bubble
-                                        if fullProjData!.chatData[i].showldShowAsNew {
+                                        if fullProjData!.chatData[i].shouldShowAsNew {
                                             Triangle()
                                                 .fill(Color(hex: 0x435165))
                                                 .frame(width: 8, height: 6)
@@ -307,7 +303,7 @@ struct MTEditorView: View {
                                     .offset(x: -10)
                                     .onTapGesture {
                                         if isInserting {
-                                            fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, showldShowAsNew: { () -> Bool in
+                                            fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: { () -> Bool in
                                                 if let upMessage = fullProjData!.chatData.last {
                                                     if upMessage.characterId == currentSelectCharacterData.id {
                                                         return false
@@ -382,7 +378,7 @@ struct MTEditorView: View {
             @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
             @Binding var currentSelectCharacterImageGroupIndex: Int
             var body: some View {
-                NavigationView {
+                NavigationStack {
                     List {
                         Button(action: {
                             currentSelectCharacterData = MTBase.SingleCharacterData(id: "Sensei", fullName: "", shortName: "", imageNames: [""])
@@ -414,7 +410,7 @@ struct MTEditorView: View {
                                             Image(systemName: "checkmark")
                                                 .foregroundColor(.blue)
                                         }
-                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: (characterSelectTab![i]["Character"]! as! MTBase.SingleCharacterData).imageNames[characterSelectTab![i]["ImageIndex"]! as! Int], withExtension: "png")!))!)
+                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: (characterSelectTab![i]["Character"]! as! MTBase.SingleCharacterData).imageNames[characterSelectTab![i]["ImageIndex"]! as! Int], withExtension: "webp")!))!)
                                             .resizable()
                                             .frame(width: 50, height: 50)
                                             .clipShape(Circle())
@@ -437,14 +433,14 @@ struct MTEditorView: View {
             @State var searchText = ""
             @State var searchedCharacterDatas: [MTBase.SingleCharacterData]? = nil
             var body: some View {
-                NavigationView {
+                NavigationStack {
                     List {
                         if allCharacterDatas != nil {
                             if searchText == "" || searchedCharacterDatas == nil || searchedCharacterDatas?.count == 0 {
                                 ForEach(0..<allCharacterDatas!.count, id: \.self) { i in
                                     NavigationLink(destination: {AddCharacterSettingView(selectedCharacterData: allCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection)}, label: {
                                         HStack {
-                                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: allCharacterDatas![i].imageNames[0], withExtension: "png")!))!)
+                                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: allCharacterDatas![i].imageNames[0], withExtension: "webp")!))!)
                                                 .resizable()
                                                 .frame(width: 50, height: 50)
                                                 .clipShape(Circle())
@@ -503,7 +499,7 @@ struct MTEditorView: View {
                                             Image(systemName: "checkmark")
                                                 .foregroundColor(.blue)
                                         }
-                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: selectedCharacterData.imageNames[i], withExtension: "png")!))!)
+                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: selectedCharacterData.imageNames[i], withExtension: "webp")!))!)
                                             .resizable()
                                             .frame(width: 50, height: 50)
                                             .clipShape(Circle())
@@ -542,39 +538,51 @@ struct MTEditorView: View {
             @State var systemMessageInputCache = ""
             @State var shouldAddSpecialEvent = false
             @State var isSpecialEventAddTipPresented = false
+            @State var isCharaImgsDownloadPresented = false
             var body: some View {
-                NavigationView {
+                NavigationStack {
                     List {
-                        TextField("系统消息", text: $systemMessageInputCache)
-                            .onSubmit {
-                                fullProjData!.chatData.append(.init(characterId: "System", imageGroupIndex: 0, isImage: false, content: systemMessageInputCache, showldShowAsNew: true))
-                                systemMessageInputCache = ""
-                                dismiss()
-                            }
-                        Button(action: {
-                            if !isIgnoreSpecialEventTip {
-                                isSpecialEventAddTipPresented = true
-                            } else {
-                                AddNewSpecialEvent()
-                                dismiss()
-                            }
-                        }, label: {
-                            Text("羁绊剧情")
-                        })
-                        .sheet(isPresented: $isSpecialEventAddTipPresented, onDismiss: {
-                            if shouldAddSpecialEvent {
-                                shouldAddSpecialEvent = false
-                                AddNewSpecialEvent()
-                                dismiss()
-                            }
-                        }, content: {SpecialEventAddTipView(shouldAddSpecialEvent: $shouldAddSpecialEvent)})
+                        Section {
+                            TextField("系统消息", text: $systemMessageInputCache)
+                                .onSubmit {
+                                    fullProjData!.chatData.append(.init(characterId: "System", imageGroupIndex: 0, isImage: false, content: systemMessageInputCache, shouldShowAsNew: true))
+                                    systemMessageInputCache = ""
+                                    dismiss()
+                                }
+                            // TODO: Special Event
+//                            Button(action: {
+//                                if !isIgnoreSpecialEventTip {
+//                                    isSpecialEventAddTipPresented = true
+//                                } else {
+//                                    AddNewSpecialEvent()
+//                                    dismiss()
+//                                }
+//                            }, label: {
+//                                Text("羁绊剧情")
+//                            })
+//                            .sheet(isPresented: $isSpecialEventAddTipPresented, onDismiss: {
+//                                if shouldAddSpecialEvent {
+//                                    shouldAddSpecialEvent = false
+//                                    AddNewSpecialEvent()
+//                                    dismiss()
+//                                }
+//                            }, content: {SpecialEventAddTipView(shouldAddSpecialEvent: $shouldAddSpecialEvent)})
+                        }
+//                        Section {
+//                            Button(action: {
+//                                isCharaImgsDownloadPresented = true
+//                            }, label: {
+//                                Text("下载差分立绘/表情资源")
+//                            })
+//                        }
                     }
                     .navigationTitle("特殊消息")
+                    .fullScreenCover(isPresented: $isCharaImgsDownloadPresented, content: { CharaImgsDownloadView() })
                 }
             }
             
             func AddNewSpecialEvent() {
-                fullProjData!.chatData.append(.init(characterId: "SpecialEvent", imageGroupIndex: 0, isImage: false, content: currentSelectCharacterData.shortName, showldShowAsNew: true))
+                fullProjData!.chatData.append(.init(characterId: "SpecialEvent", imageGroupIndex: 0, isImage: false, content: currentSelectCharacterData.shortName, shouldShowAsNew: true))
             }
             
             struct SpecialEventAddTipView: View {
@@ -647,7 +655,7 @@ struct MTEditorView: View {
             @State var isEditRawTipped = false
             @State var isRawEditorPresented = false
             var body: some View {
-                NavigationView {
+                NavigationStack {
                     List {
                         Section(header: Text("导出")) {
                             Button(action: {
@@ -658,6 +666,7 @@ struct MTEditorView: View {
                             .sheet(isPresented: $isExportAsImagePresented, onDismiss: {
                                 dismiss()
                             }, content: {ExportAsImageView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex)})
+                            .disabled(fullProjData!.chatData.isEmpty)
                             Button(action: {
                                 let sourceURL = AppFileManager(path: "MTProj").GetPath(projName).url
                                 let destinationUrl = FileManager.default.temporaryDirectory.appendingPathComponent(sourceURL.lastPathComponent)
@@ -758,7 +767,7 @@ struct MTEditorView: View {
                 @State var exportingImage = UIImage()
                 @State var screenShotFinishHander: (() -> Void)? = nil
                 var body: some View {
-                    NavigationView {
+                    NavigationStack {
                         List {
                             Section(header: Text("图片切割模式")) {
                                 Button(action: {
@@ -988,7 +997,7 @@ class MTBase {
         var imageGroupIndex: Int
         var isImage: Bool
         var content: String
-        var showldShowAsNew: Bool
+        var shouldShowAsNew: Bool
     }
     struct SingleCharacterData: Identifiable, Equatable {
         let id: String
@@ -1006,9 +1015,9 @@ class MTBase {
                 break
             }
             if let imgGroupIndex = Int(dataSpd[1]),
-               let isShowldShowAsNew = Bool(dataSpd[3]) {
+               let isshouldShowAsNew = Bool(dataSpd[3]) {
                 let isImage = dataSpd[2].hasPrefix("%%TImage%%*")
-                tmpChatData.append(SingleChatData(characterId: dataSpd[0], imageGroupIndex: imgGroupIndex, isImage: isImage, content: isImage ? String(dataSpd[2].dropFirst(11)) : dataSpd[2], showldShowAsNew: isShowldShowAsNew))
+                tmpChatData.append(SingleChatData(characterId: dataSpd[0], imageGroupIndex: imgGroupIndex, isImage: isImage, content: isImage ? String(dataSpd[2].dropFirst(11)) : dataSpd[2], shouldShowAsNew: isshouldShowAsNew))
             }
         }
         return FullData(chatData: tmpChatData)
@@ -1017,7 +1026,7 @@ class MTBase {
         let chatData = inp.chatData
         var tmpOutStr = ""
         for singleChat in chatData {
-            tmpOutStr += "\(singleChat.characterId)|\(singleChat.imageGroupIndex)|\(singleChat.isImage ? "%%TImage%%*" : "")\(singleChat.content)|\(singleChat.showldShowAsNew)\n"
+            tmpOutStr += "\(singleChat.characterId)|\(singleChat.imageGroupIndex)|\(singleChat.isImage ? "%%TImage%%*" : "")\(singleChat.content)|\(singleChat.shouldShowAsNew)\n"
         }
         return tmpOutStr
     }
@@ -1034,7 +1043,7 @@ class MTBase {
         let json = try! JSON(data: Data(contentsOf: Bundle.main.url(forResource: "MTCharacterData", withExtension: "json")!))
         var tmpOutDatas = [SingleCharacterData]()
         for character in json {
-            tmpOutDatas.append(SingleCharacterData(id: character.1["id"].string!, fullName: character.1["names"]["zh-cn"].string!, shortName: character.1["short_names"]["zh-cn"].string!, imageNames: character.1["images"].arrayObject! as! [String]))
+            tmpOutDatas.append(SingleCharacterData(id: character.1["id"].string!, fullName: character.1["names"]["zh-cn"].string! == "" ? character.1["names"]["ja"].string! : character.1["names"]["zh-cn"].string!, shortName: character.1["short_names"]["zh-cn"].string! == "" ? character.1["short_names"]["ja"].string! : character.1["short_names"]["zh-cn"].string!, imageNames: character.1["images"].arrayObject! as! [String]))
         }
         return tmpOutDatas
     }

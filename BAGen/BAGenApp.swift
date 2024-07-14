@@ -28,31 +28,32 @@ struct BAGenApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                switch nowMainScene {
-                case .Intro:
-                    ContentView()
-                        .onAppear {
-                            Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
-                                nowMainScene = nowScene
-                                isAlertPresented = isGlobalAlertPresented
-                                alertContent = globalAlertContent
-                            }
-                        }
-                case .TypeChoose:
-                    TypeChooseView()
-                case .FSEditChooser:
-                    FSEditChooserView()
-                case .FSEditor:
-                    FSEditorView()
-                case .MTEditChooser:
-                    MTEditChooserView()
-                case .MTEditor:
-                    MTEditorView()
-                case .EachCharacters:
-                    EachCharactersView.Serika()
-                case .CrashReporter:
-                    CrashReporterView()
-                }
+//                switch nowMainScene {
+//                case .Intro:
+//                    ContentView()
+//                        .onAppear {
+//                            Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+//                                nowMainScene = nowScene
+//                                isAlertPresented = isGlobalAlertPresented
+//                                alertContent = globalAlertContent
+//                            }
+//                        }
+//                case .TypeChoose:
+//                    TypeChooseView()
+//                case .FSEditChooser:
+//                    FSEditChooserView()
+//                case .FSEditor:
+//                    FSEditorView()
+//                case .MTEditChooser:
+//                    MTEditChooserView()
+//                case .MTEditor:
+//                    MTEditorView()
+//                case .EachCharacters:
+//                    EachCharactersView.Serika()
+//                case .CrashReporter:
+//                    CrashReporterView()
+//                }
+                MTEditChooserView()
             }
             .overlay {
                 if isAlertPresented, let content = globalAlertContent {
@@ -156,11 +157,7 @@ func ChangeScene(to sceneName: NowScene) {
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    public static var orientationLock = UIInterfaceOrientationMask.landscape
     
-    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        return AppDelegate.orientationLock
-    }
 }
 
 func CrashHander(signalStr: String, signalCode: Int32) {

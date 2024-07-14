@@ -10,7 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     @AppStorage("IsAllowIntoDevelopingArea") var isAllowIntoDevelopingArea = false
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section(header: Text("高级")) {
                     Toggle("开发区域访问", isOn: $isAllowIntoDevelopingArea)
