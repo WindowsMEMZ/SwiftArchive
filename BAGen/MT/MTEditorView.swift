@@ -194,6 +194,7 @@ struct MTEditorView: View {
                                 }
                             }
                             .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
                             .frame(maxWidth: UIScreen.main.bounds.height - 50)
                         } else if fullProjData!.chatData[i].characterId == "SpecialEvent" {
                             // MARK: Special Event Message View
@@ -328,6 +329,7 @@ struct MTEditorView: View {
                                 Spacer()
                             }
                             .padding(.horizontal, 10)
+                            .padding(.vertical, -5)
                             .frame(maxWidth: UIScreen.main.bounds.height - 50)
                         }
                     }
@@ -968,6 +970,9 @@ struct MTEditorView: View {
                             } else {
                                 tmpChatDataSplitting.append(chatData)
                             }
+                        }
+                        if !tmpChatDataSplitting.isEmpty {
+                            chatDatasSplittedByCharacter.append(tmpChatDataSplitting)
                         }
                     }
                 }

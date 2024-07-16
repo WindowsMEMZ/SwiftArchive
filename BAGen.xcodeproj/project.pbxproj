@@ -1406,7 +1406,7 @@
 		8CF94B942C116A9500831C4F /* Yuzu_Collection.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = Yuzu_Collection.webp; sourceTree = "<group>"; };
 		8CF94B952C116A9500831C4F /* Yuzu.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = Yuzu.webp; sourceTree = "<group>"; };
 		8CF94B962C116A9500831C4F /* Zunko_Collection.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = Zunko_Collection.webp; sourceTree = "<group>"; };
-		8CF94B992C116A9D00831C4F /* MTCharacterData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = MTCharacterData.json; path = "../../../Downloads/closuretalk.github.io-master/resources/ba/MTCharacterData.json"; sourceTree = "<group>"; };
+		8CF94B992C116A9D00831C4F /* MTCharacterData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = MTCharacterData.json; sourceTree = "<group>"; };
 		8CF94B9B2C116AAE00831C4F /* ClanChat_Emoji_01_Jp.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = ClanChat_Emoji_01_Jp.webp; sourceTree = "<group>"; };
 		8CF94B9C2C116AAE00831C4F /* ClanChat_Emoji_02_Jp.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = ClanChat_Emoji_02_Jp.webp; sourceTree = "<group>"; };
 		8CF94B9D2C116AAE00831C4F /* ClanChat_Emoji_03_Jp.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = ClanChat_Emoji_03_Jp.webp; sourceTree = "<group>"; };
@@ -1616,6 +1616,13 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		8C58A4A42C46AE5400E45511 /* AvatorDiffs */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = AvatorDiffs;
+			sourceTree = "<group>";
+		};
 		8CCA6C7F2ACEB7D90008CC4A /* MTDatas */ = {
 			isa = PBXGroup;
 			children = (
@@ -1629,6 +1636,7 @@
 		8CCFEBE32ACD1698003ADFEA /* BundleFiles */ = {
 			isa = PBXGroup;
 			children = (
+				8C58A4A42C46AE5400E45511 /* AvatorDiffs */,
 				8CCA6C7F2ACEB7D90008CC4A /* MTDatas */,
 				8CCFEBE82ACD1931003ADFEA /* Font */,
 				8CCFEBE42ACD16B4003ADFEA /* Theme_01.wav */,
