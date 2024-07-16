@@ -21,6 +21,7 @@ import ScreenshotableView
 //!!!: On this view, UIScreen.main.bounds' height & width were exchanged
 struct MTEditorView: View {
     var projName: String = mtEnterProjName
+    @Environment(\.dismiss) var dismiss
     @State var fullProjData: MTBase.FullData?
     @State var newMessageTextCache = ""
     @State var isChatActionsPresented = false
@@ -102,7 +103,7 @@ struct MTEditorView: View {
                     })
                     .sheet(isPresented: $isChatActionsPresented, onDismiss: {
                         
-                    }, content: {ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: $fullProjData, projName: projName)})
+                    }, content: {ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: $fullProjData, projName: projName, dismissAction: dismiss)})
                 }
                 .padding(.horizontal)
             }
@@ -342,6 +343,7 @@ struct MTEditorView: View {
         @Binding var currentSelectCharacterImageGroupIndex: Int
         @Binding var fullProjData: MTBase.FullData?
         var projName: String
+        var dismissAction: DismissAction
         @State var nowTabviewSelection = 0
         var body: some View {
             TabView(selection: $nowTabviewSelection) {
@@ -363,7 +365,7 @@ struct MTEditorView: View {
                         Label("特殊消息", systemImage: "star.bubble")
                             .symbolRenderingMode(.hierarchical)
                     }
-                ProjectSettingsView(projName: projName, fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex)
+                ProjectSettingsView(projName: projName, dismissAction: dismissAction, fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex)
                     .tag(3)
                     .tabItem {
                         Label("项目管理", systemImage: "doc.badge.gearshape")
@@ -646,6 +648,7 @@ struct MTEditorView: View {
         
         struct ProjectSettingsView: View {
             var projName: String
+            var dismissAction: DismissAction
             @Binding var fullProjData: MTBase.FullData?
             @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
             @Binding var currentSelectCharacterImageGroupIndex: Int
@@ -698,7 +701,7 @@ struct MTEditorView: View {
                             Button(action: {
                                 SaveProject()
                                 mtIsHaveUnsavedChange = false
-                                nowScene = .MTEditChooser
+                                dismissAction()
                             }, label: {
                                 Text("保存并退出")
                             })
@@ -714,7 +717,7 @@ struct MTEditorView: View {
                                 DarockKit.UIAlert.shared.presentAlert(title: "需要确认", subtitle: "长按文字以执行此操作", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
                             }
                             .onLongPressGesture(minimumDuration: 2.5) {
-                                nowScene = .MTEditChooser
+                                dismissAction()
                             }
                             Button(role: .destructive, action: {
                                 DarockKit.UIAlert.shared.presentAlert(title: "需要确认", subtitle: "长按文字以执行此操作", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
@@ -729,7 +732,7 @@ struct MTEditorView: View {
                             }
                             .onLongPressGesture(minimumDuration: 2.5) {
                                 AppFileManager(path: "MTProj").DeleteFile(projName)
-                                nowScene = .MTEditChooser
+                                dismissAction()
                             }
                         }
                         
