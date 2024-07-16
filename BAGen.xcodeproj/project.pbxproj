@@ -17,6 +17,7 @@
 		6BD5A6352AC988E7004B05F9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BD5A6342AC988E7004B05F9 /* Preview Assets.xcassets */; };
 		6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6BD5A63C2AC98912004B05F9 /* DarockKit */; };
 		8C2315DA2AD98C0A00AE96EE /* ScreenshotableView in Frameworks */ = {isa = PBXBuildFile; productRef = 8C2315D92AD98C0A00AE96EE /* ScreenshotableView */; };
+		8C58C18C2C46B29400E45511 /* AvatorDiffs in Resources */ = {isa = PBXBuildFile; fileRef = 8C58C18B2C46B29300E45511 /* AvatorDiffs */; };
 		8CC889912ADA74D100191A59 /* MTRawEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CC889902ADA74D100191A59 /* MTRawEditorView.swift */; };
 		8CC889942ADA7D3800191A59 /* AttributedString in Frameworks */ = {isa = PBXBuildFile; productRef = 8CC889932ADA7D3800191A59 /* AttributedString */; };
 		8CCA71972ACF08B40008CC4A /* CrashReporterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CCA71962ACF08B40008CC4A /* CrashReporterView.swift */; };
@@ -792,6 +793,7 @@
 		6BD5A6342AC988E7004B05F9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		6BD5A63E2AC98932004B05F9 /* BAGen.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BAGen.entitlements; sourceTree = "<group>"; };
 		6BD5A63F2AC991C9004B05F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		8C58C18B2C46B29300E45511 /* AvatorDiffs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AvatorDiffs; sourceTree = "<group>"; };
 		8CC889902ADA74D100191A59 /* MTRawEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MTRawEditorView.swift; sourceTree = "<group>"; };
 		8CCA71962ACF08B40008CC4A /* CrashReporterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporterView.swift; sourceTree = "<group>"; };
 		8CCFEBE42ACD16B4003ADFEA /* Theme_01.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = Theme_01.wav; path = Res/BuiltIn/AudioClip/Theme_01.wav; sourceTree = SOURCE_ROOT; };
@@ -1575,6 +1577,7 @@
 			children = (
 				8CE8F1552ADB8F520075B3FD /* ExportOptions.plist */,
 				6BD5A63F2AC991C9004B05F9 /* README.md */,
+				8C58C18B2C46B29300E45511 /* AvatorDiffs */,
 				8CCFEBE32ACD1698003ADFEA /* BundleFiles */,
 				6BD5A62C2AC988E6004B05F9 /* BAGen */,
 				6BD5A62B2AC988E6004B05F9 /* Products */,
@@ -1616,13 +1619,6 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		8C58A4A42C46AE5400E45511 /* AvatorDiffs */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = AvatorDiffs;
-			sourceTree = "<group>";
-		};
 		8CCA6C7F2ACEB7D90008CC4A /* MTDatas */ = {
 			isa = PBXGroup;
 			children = (
@@ -1636,7 +1632,6 @@
 		8CCFEBE32ACD1698003ADFEA /* BundleFiles */ = {
 			isa = PBXGroup;
 			children = (
-				8C58A4A42C46AE5400E45511 /* AvatorDiffs */,
 				8CCA6C7F2ACEB7D90008CC4A /* MTDatas */,
 				8CCFEBE82ACD1931003ADFEA /* Font */,
 				8CCFEBE42ACD16B4003ADFEA /* Theme_01.wav */,
@@ -2500,6 +2495,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C58C18C2C46B29400E45511 /* AvatorDiffs in Resources */,
 				8CF94D4C2C116AAF00831C4F /* Ibuki_Collection.webp in Resources */,
 				8CF94E1C2C116AAF00831C4F /* NP0189.webp in Resources */,
 				8CF94E712C116AAF00831C4F /* Valkyrie_SG.webp in Resources */,
