@@ -1602,7 +1602,9 @@
 				6BD5A62D2AC988E6004B05F9 /* BAGenApp.swift */,
 				6BD5A62F2AC988E6004B05F9 /* ContentView.swift */,
 				6B36D1452ACADF8B0012CF1B /* CharaImgsDownloadView.swift */,
-				8CFC141C2ACE8F7000DE14D7 /* MT */,
+				8CFC141D2ACE8F8E00DE14D7 /* MTEditChooserView.swift */,
+				8CFC141F2ACE8FA000DE14D7 /* MTEditorView.swift */,
+				8CC889902ADA74D100191A59 /* MTRawEditorView.swift */,
 				8CCA71962ACF08B40008CC4A /* CrashReporterView.swift */,
 				8CE8F1562ADB9A550075B3FD /* SettingsView.swift */,
 				6BD5A6312AC988E7004B05F9 /* Assets.xcassets */,
@@ -2412,16 +2414,6 @@
 				8CF94C2A2C116AAE00831C4F /* ClanChat_Emoji_144_Jp.webp */,
 			);
 			path = stamps;
-			sourceTree = "<group>";
-		};
-		8CFC141C2ACE8F7000DE14D7 /* MT */ = {
-			isa = PBXGroup;
-			children = (
-				8CFC141D2ACE8F8E00DE14D7 /* MTEditChooserView.swift */,
-				8CFC141F2ACE8FA000DE14D7 /* MTEditorView.swift */,
-				8CC889902ADA74D100191A59 /* MTRawEditorView.swift */,
-			);
-			path = MT;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -3423,7 +3415,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -3465,7 +3457,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

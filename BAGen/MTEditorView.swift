@@ -426,6 +426,19 @@ struct MTEditorView: View {
                         }
                     }
                     .navigationTitle("对话角色库")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                dismiss()
+                            }, label: {
+                                Image(systemName: "xmark")
+                                    .bold()
+                                    .foregroundStyle(Color.gray)
+                            })
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.circle)
+                        }
+                    }
                 }
             }
         }
@@ -433,6 +446,7 @@ struct MTEditorView: View {
         struct ModifyCurrentCharacterView: View {
             @Binding var characterSelectTab: [[String: Any]]?
             @Binding var nowTabviewSelection: Int
+            @Environment(\.dismiss) var dismiss
             @State var allCharacterDatas: [MTBase.SingleCharacterData]? = nil
             @State var searchText = ""
             @State var searchedCharacterDatas: [MTBase.SingleCharacterData]? = nil
@@ -469,18 +483,31 @@ struct MTEditorView: View {
                             }
                         }
                     }
+                    .navigationTitle("选择角色")
                     .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: "搜索...")
-                    .onChange(of: searchText) { value in
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                dismiss()
+                            }, label: {
+                                Image(systemName: "xmark")
+                                    .bold()
+                                    .foregroundStyle(Color.gray)
+                            })
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.circle)
+                        }
+                    }
+                    .onAppear {
+                        allCharacterDatas = MTBase().getAllCharacterDatas()
+                    }
+                    .onChange(of: searchText) {
                         searchedCharacterDatas = [MTBase.SingleCharacterData]()
                         for i in 0..<allCharacterDatas!.count {
                             if allCharacterDatas![i].fullName.contains(searchText) {
                                 searchedCharacterDatas!.append(allCharacterDatas![i])
                             }
                         }
-                    }
-                    .navigationTitle("选择角色")
-                    .onAppear {
-                        allCharacterDatas = MTBase().getAllCharacterDatas()
                     }
                 }
             }
@@ -582,6 +609,19 @@ struct MTEditorView: View {
                     }
                     .navigationTitle("特殊消息")
                     .fullScreenCover(isPresented: $isCharaImgsDownloadPresented, content: { CharaImgsDownloadView() })
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                dismiss()
+                            }, label: {
+                                Image(systemName: "xmark")
+                                    .bold()
+                                    .foregroundStyle(Color.gray)
+                            })
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.circle)
+                        }
+                    }
                 }
             }
             
@@ -756,6 +796,19 @@ struct MTEditorView: View {
                         }
                     }
                     .navigationTitle("项目管理")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                dismiss()
+                            }, label: {
+                                Image(systemName: "xmark")
+                                    .bold()
+                                    .foregroundStyle(Color.gray)
+                            })
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.circle)
+                        }
+                    }
                 }
             }
             
