@@ -1,0 +1,39 @@
+name: 功能建议
+description: 对项目有建议/需要新功能？
+title: "[建议]: "
+labels: ["建议", "需要分类"]
+assignees:
+  - WindowsMEMZ
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间填写本表单！
+  - type: dropdown
+    id: sug_location
+    attributes:
+      label: 建议区域
+      description: 要提出建议的区域
+      multiple: true
+      options:
+        - Momotalk 编辑器
+        - 剧情编辑器
+        - 项目整体
+        - UI 设计
+        - 其他
+    validations:
+      required: true
+  - type: input
+    id: sug_location_other
+    attributes:
+      label: 其他建议位置
+      description: 如果上一个选择了“其他”，请填写此项
+      placeholder: 例如：顶部栏
+    validations:
+      required: false
+  - type: textarea
+    id: main_desc
+    attributes:
+      label: 建议内容
+    validations:
+      required: true
