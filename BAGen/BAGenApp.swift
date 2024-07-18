@@ -7,13 +7,12 @@
 
 import Darwin
 import SwiftUI
+import AVFoundation
 import UserNotifications
 
-var fsEnterProjName = ""
 var mtEnterProjName = ""
 var mtIsHaveUnsavedChange = false
-var isGlobalAlertPresented = false
-var globalAlertContent: (() -> AnyView)?
+var globalAudioPlayer = AVAudioPlayer()
 
 @main
 struct BAGenApp: App {

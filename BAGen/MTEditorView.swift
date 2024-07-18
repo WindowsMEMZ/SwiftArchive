@@ -120,6 +120,7 @@ struct MTEditorView: View {
                         }, content: {ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: $fullProjData, projName: projName, dismissAction: dismiss)})
                     }
                     .padding(.horizontal)
+                    .disabled(fullProjData == nil)
                 }
             }
         }
@@ -1143,13 +1144,15 @@ struct MTEditorView: View {
                                         isShotting.toggle()
                                     } else {
                                         let alert = AlertAppleMusic17View(title: "导出...", subtitle: "正在导出图片到相册...", icon: .spinnerSmall, duration: 2)
-                                        alert.haptic = .warning
                                         let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first
                                         if let window = window {
                                             alert.present(on: window)
                                         }
                                         DispatchQueue(label: "com.Neinnko.BAGen.Project-Export.Image", qos: .userInitiated).async {
                                             let group = DispatchGroup()
+                                            for _ in 0..<shottingCount {
+                                                group.enter()
+                                            }
                                             var finishedScreenshots = [(UIImage, Int)]()
                                             currentFinishHandler = { image, index in
                                                 finishedScreenshots.append((image, index))
@@ -1162,9 +1165,6 @@ struct MTEditorView: View {
                                                 }
                                                 alert.dismiss()
                                                 DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
-                                            }
-                                            for _ in 0..<shottingCount {
-                                                group.enter()
                                             }
                                             isShotting.toggle()
                                         }
@@ -1210,11 +1210,45 @@ struct MTEditorView: View {
                 @State var currentFinishHandler: (UIImage, Int) -> Void = { _, _ in }
                 @State var shotImages = [UIImage]()
                 @State var previewUrl: URL?
+                @State var singleImageDuration = 5.0
+                @State var singleImageDurationInput = "5.0"
+                @State var bgmName = ""
                 var body: some View {
                     NavigationStack {
                         ScrollView {
                             VStack {
                                 ImageShoterView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, splittingMethod: $splittingMethod, isShottingAll: $isShotting, shottingImageCount: $shottingCount, finishHandler: $currentFinishHandler)
+                                List {
+                                    Section {
+                                        HStack {
+                                            Text("单张图片持续时间")
+                                            Spacer()
+                                            TextField("时间", text: $singleImageDurationInput)
+                                                .submitLabel(.done)
+                                                .onSubmit {
+                                                    if let dValue = Double(singleImageDurationInput) {
+                                                        singleImageDuration = dValue
+                                                    } else {
+                                                        singleImageDurationInput = String(singleImageDuration)
+                                                    }
+                                                }
+                                        }
+                                        NavigationLink(destination: { BackgroundMusicChooseView(currentChoseName: $bgmName) }, label: {
+                                            HStack {
+                                                Text("背景音乐...")
+                                                Spacer()
+                                                Text(!bgmName.isEmpty ? bgmName : "无")
+                                                    .lineLimit(1)
+                                                    .foregroundStyle(Color.gray)
+                                            }
+                                        })
+                                    } header: {
+                                        Text("视频设置")
+                                    }
+                                }
+                                .scrollDisabled(true)
+                                .frame(height: 300)
+                                Divider()
                                 Button(action: {
                                     if splittingMethod == .none {
                                         currentFinishHandler = { image, index in
@@ -1224,13 +1258,15 @@ struct MTEditorView: View {
                                         isShotting.toggle()
                                     } else {
                                         let alert = AlertAppleMusic17View(title: "导出...", subtitle: "正在导出视频...", icon: .spinnerSmall, duration: 2)
-                                        alert.haptic = .warning
                                         let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first
                                         if let window = window {
                                             alert.present(on: window)
                                         }
                                         DispatchQueue(label: "com.Neinnko.BAGen.Project-Export.Video", qos: .userInitiated).async {
                                             let group = DispatchGroup()
+                                            for _ in 0..<shottingCount {
+                                                group.enter()
+                                            }
                                             var finishedScreenshots = [(UIImage, Int)]()
                                             currentFinishHandler = { image, index in
                                                 finishedScreenshots.append((image, index))
@@ -1244,25 +1280,28 @@ struct MTEditorView: View {
                                                 }
                                                 // MARK: Step 1 - Get All Screenshot, Finished here.
                                                 
-                                                VideoGenerator.fileName = "ExportedProjVideo.m4v"
+                                                let audioUrls: [URL]
+                                                if !bgmName.isEmpty {
+                                                    audioUrls = [Bundle.main.url(forResource: bgmName, withExtension: "mp3", subdirectory: "OSTAudio")!]
+                                                } else {
+                                                    audioUrls = []
+                                                }
+                                                VideoGenerator.fileName = "ExportVideo"
                                                 VideoGenerator.shouldOptimiseImageForVideo = true
                                                 VideoGenerator.scaleWidth = 1920
-                                                VideoGenerator.current.generate(withImages: shotImages, andAudios: [], andType: .singleAudioMultipleImage, { progress in
+                                                VideoGenerator.videoDurationInSeconds = singleImageDuration * Double(shotImages.count)
+                                                VideoGenerator.current.generate(withImages: shotImages, andAudios: audioUrls, andType: .singleAudioMultipleImage, { progress in
                                                     debugPrint(progress)
                                                 }, outcome: { result in
                                                     switch result {
                                                     case .success(let success):
                                                         previewUrl = success
+                                                        alert.dismiss()
+                                                        DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将视频导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
                                                     case .failure(let error):
                                                         print(error)
                                                     }
                                                 })
-                                                
-                                                alert.dismiss()
-                                                DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将视频导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
-                                            }
-                                            for _ in 0..<shottingCount {
-                                                group.enter()
                                             }
                                             isShotting.toggle()
                                         }
@@ -1279,6 +1318,7 @@ struct MTEditorView: View {
                                 .padding()
                             }
                         }
+                        .scrollDismissesKeyboard(.immediately)
                         .navigationTitle("导出为视频")
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
@@ -1296,6 +1336,73 @@ struct MTEditorView: View {
                         .quickLookPreview($previewUrl)
                     }
                     .interactiveDismissDisabled()
+                }
+                
+                struct BackgroundMusicChooseView: View {
+                    @Binding var currentChoseName: String
+                    @Environment(\.dismiss) var dismiss
+                    @State var allMusicNames = [String]()
+                    @State var searchText = ""
+                    var body: some View {
+                        List {
+                            Section {
+                                Button(action: {
+                                    currentChoseName = ""
+                                    globalAudioPlayer.stop()
+                                }, label: {
+                                    HStack {
+                                        Text("无")
+                                            .foregroundStyle(Color.black)
+                                        Spacer()
+                                        if currentChoseName.isEmpty {
+                                            Image(systemName: "checkmark")
+                                                .bold()
+                                                .foregroundStyle(Color.blue)
+                                        }
+                                    }
+                                })
+                                if !allMusicNames.isEmpty {
+                                    ForEach(0..<allMusicNames.count, id: \.self) { i in
+                                        if searchText.isEmpty || allMusicNames[i].contains(searchText) {
+                                            Button(action: {
+                                                currentChoseName = allMusicNames[i]
+                                                do {
+                                                    globalAudioPlayer = try AVAudioPlayer(contentsOf: Bundle.main.url(forResource: allMusicNames[i], withExtension: "mp3", subdirectory: "OSTAudio")!)
+                                                    globalAudioPlayer.play()
+                                                } catch {
+                                                    print(error)
+                                                }
+                                            }, label: {
+                                                HStack {
+                                                    Text(allMusicNames[i])
+                                                        .foregroundStyle(Color.black)
+                                                    Spacer()
+                                                    if currentChoseName == allMusicNames[i] {
+                                                        Image(systemName: "checkmark")
+                                                            .bold()
+                                                            .foregroundStyle(Color.blue)
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .searchable(text: $searchText)
+                        .navigationTitle("选择背景音乐")
+                        .onAppear {
+                            do {
+                                allMusicNames = try FileManager.default.contentsOfDirectory(atPath: Bundle.main.bundlePath + "/OSTAudio").map { String($0.split(separator: ".")[0]) }
+                                allMusicNames.sort()
+                            } catch {
+                                print(error)
+                            }
+                        }
+                        .onDisappear {
+                            globalAudioPlayer.stop()
+                        }
+                    }
                 }
             }
             
