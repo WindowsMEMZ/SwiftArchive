@@ -6,9 +6,12 @@
 //
 
 import SwiftUI
+import PhotosUI
+import QuickLook
 import DarockKit
 import SwiftyJSON
 import ScreenshotableView
+import SwiftVideoGenerator
 
 // 文件格式:
 // 文本对话: {角色 ID(String)}|{头像组下标(Int)}|{内容}|{ShouldShowAsNew(Bool)}
@@ -182,6 +185,18 @@ struct MTEditorView: View {
                                                             .fill(Color.white)
                                                             .strokeBorder(Color(hex: 0xc6cdd7), lineWidth: 1.5)
                                                     }
+                                            } else if let imgData = Data(base64Encoded: fullProjData!.chatData[i].content), let image = UIImage(data: imgData) {
+                                                Image(uiImage: image)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 150)
+                                                    .cornerRadius(8)
+                                                    .padding(6)
+                                                    .background {
+                                                        RoundedRectangle(cornerRadius: 12)
+                                                            .fill(Color.white)
+                                                            .strokeBorder(Color(hex: 0xc6cdd7), lineWidth: 1.5)
+                                                    }
                                             }
                                         }
                                         if fullProjData!.chatData[i].shouldShowAsNew && !fullProjData!.chatData[i].isImage {
@@ -310,6 +325,18 @@ struct MTEditorView: View {
                                             } else {
                                                 if fullProjData!.chatData[i].content.hasPrefix("./"),
                                                    let image = UIImage(contentsOfFile: Bundle.main.bundlePath + fullProjData!.chatData[i].content.dropFirst()) {
+                                                    Image(uiImage: image)
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 150)
+                                                        .cornerRadius(8)
+                                                        .padding(6)
+                                                        .background {
+                                                            RoundedRectangle(cornerRadius: 12)
+                                                                .fill(Color.white)
+                                                                .strokeBorder(Color(hex: 0xc6cdd7), lineWidth: 1.5)
+                                                        }
+                                                } else if let imgData = Data(base64Encoded: fullProjData!.chatData[i].content), let image = UIImage(data: imgData) {
                                                     Image(uiImage: image)
                                                         .resizable()
                                                         .scaledToFit()
@@ -596,6 +623,7 @@ struct MTEditorView: View {
             @State var shouldAddSpecialEvent = false
             @State var isSpecialEventAddTipPresented = false
             @State var isCharaImgsDownloadPresented = false
+            @State var importSelectedPhoto: PhotosPickerItem?
             var body: some View {
                 NavigationStack {
                     List {
@@ -609,24 +637,28 @@ struct MTEditorView: View {
                             NavigationLink(destination: { DiffAvatorChooseView(currentSelectCharacterData: $currentSelectCharacterData, fullProjData: $fullProjData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, dismissSheet: dismiss) }, label: {
                                 Text("差分表情图片...")
                             })
-                            // TODO: Special Event
-                            Button(action: {
-                                if !isIgnoreSpecialEventTip {
-                                    isSpecialEventAddTipPresented = true
-                                } else {
-                                    AddNewSpecialEvent()
-                                    dismiss()
-                                }
-                            }, label: {
-                                Text("羁绊剧情")
-                            })
-                            .sheet(isPresented: $isSpecialEventAddTipPresented, onDismiss: {
-                                if shouldAddSpecialEvent {
-                                    shouldAddSpecialEvent = false
-                                    AddNewSpecialEvent()
-                                    dismiss()
-                                }
-                            }, content: {SpecialEventAddTipView(shouldAddSpecialEvent: $shouldAddSpecialEvent)})
+                            PhotosPicker(selection: $importSelectedPhoto, matching: .images) {
+                                Text("自选图片...")
+                            }
+                            if currentSelectCharacterData.id != "Sensei" {
+                                Button(action: {
+                                    if !isIgnoreSpecialEventTip {
+                                        isSpecialEventAddTipPresented = true
+                                    } else {
+                                        AddNewSpecialEvent()
+                                        dismiss()
+                                    }
+                                }, label: {
+                                    Text("\(currentSelectCharacterData.shortName)的羁绊剧情")
+                                })
+                                .sheet(isPresented: $isSpecialEventAddTipPresented, onDismiss: {
+                                    if shouldAddSpecialEvent {
+                                        shouldAddSpecialEvent = false
+                                        AddNewSpecialEvent()
+                                        dismiss()
+                                    }
+                                }, content: {SpecialEventAddTipView(shouldAddSpecialEvent: $shouldAddSpecialEvent)})
+                            }
                         }
                     }
                     .scrollDismissesKeyboard(.immediately)
@@ -642,6 +674,19 @@ struct MTEditorView: View {
                             })
                             .buttonStyle(.bordered)
                             .buttonBorderShape(.circle)
+                        }
+                    }
+                    .onChange(of: importSelectedPhoto) {
+                        importSelectedPhoto?.loadTransferable(type: UIImageTransfer.self) { result in
+                            switch result {
+                            case .success(let success):
+                                if let image = success {
+                                    let imgBase64 = image.image.pngData()!.base64EncodedString()
+                                    fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: true, content: imgBase64, shouldShowAsNew: true))
+                                }
+                            case .failure(let error):
+                                print(error)
+                            }
                         }
                     }
                 }
@@ -863,17 +908,17 @@ struct MTEditorView: View {
                             })
                             .sheet(isPresented: $isExportAsImagePresented, onDismiss: {
                                 dismiss()
-                            }, content: {ExportAsImageView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex)})
+                            }, content: { ExportAsImageView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex) })
                             .disabled(fullProjData!.chatData.isEmpty)
-//                            Button(action: {
-//                                isExportAsVideoPresented = true
-//                            }, label: {
-//                                Text("视频...")
-//                            })
-//                            .sheet(isPresented: $isExportAsVideoPresented, onDismiss: {
-//                                dismiss()
-//                            }, content: { ExportAsVideoView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex) })
-//                            .disabled(fullProjData!.chatData.isEmpty)
+                            Button(action: {
+                                isExportAsVideoPresented = true
+                            }, label: {
+                                Text("视频...")
+                            })
+                            .sheet(isPresented: $isExportAsVideoPresented, onDismiss: {
+                                dismiss()
+                            }, content: { ExportAsVideoView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex) })
+                            .disabled(fullProjData!.chatData.isEmpty)
                             Button(action: {
                                 let sourceURL = AppFileManager(path: "MTProj").GetPath(projName).url
                                 let destinationUrl = FileManager.default.temporaryDirectory.appendingPathComponent(sourceURL.lastPathComponent)
@@ -974,168 +1019,169 @@ struct MTEditorView: View {
                 }
             }
             
+            struct ImageShoterView: View {
+                @Binding var fullProjData: MTBase.FullData?
+                @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
+                @Binding var currentSelectCharacterImageGroupIndex: Int
+                @Binding var splittingMethod: MTExporter.ImageExportSplittingMethod
+                @Binding var isShottingAll: Bool
+                @Binding var shottingImageCount: Int
+                @Binding var finishHandler: (UIImage, Int) -> Void
+                @State var isScreenShotting = [false]
+                @State var splitByIndexInput = "5"
+                @State var splittedChatDatas = [[MTBase.SingleChatData]]()
+                var body: some View {
+                    VStack {
+                        HStack {
+                            Button(action: {
+                                splittingMethod = .none
+                                shottingImageCount = 1
+                            }, label: {
+                                Text("不切割")
+                            })
+                            .tint(splittingMethod == .none ? .blue : .gray)
+                            .buttonStyle(.bordered)
+                            Button(action: {
+                                splittedChatDatas = MTExporter.shared.splitChatData(in: fullProjData!.chatData, by: .byCharacter)
+                                isScreenShotting = Array(repeating: false, count: splittedChatDatas.count)
+                                splittingMethod = .byCharacter
+                                shottingImageCount = splittedChatDatas.count
+                            }, label: {
+                                HStack {
+                                    Text("按照角色切割")
+                                }
+                            })
+                            .tint(splittingMethod == .byCharacter ? .blue : .gray)
+                            .buttonStyle(.bordered)
+                            Button(action: {
+                                splittedChatDatas = MTExporter.shared.splitChatData(in: fullProjData!.chatData, by: .byIndex(5))
+                                isScreenShotting = Array(repeating: false, count: splittedChatDatas.count)
+                                splittingMethod = .byIndex(5)
+                                shottingImageCount = splittedChatDatas.count
+                            }, label: {
+                                Text("按照消息数切割")
+                            })
+                            .tint({ if case .byIndex(_) = splittingMethod { return Color.blue } else { return Color.gray } }())
+                            .buttonStyle(.bordered)
+                        }
+                        if case .byIndex(_) = splittingMethod {
+                            HStack {
+                                Text("每")
+                                TextField("", text: $splitByIndexInput)
+                                    .textFieldStyle(.roundedBorder)
+                                    .keyboardType(.numberPad)
+                                    .frame(width: 50)
+                                    .onChange(of: splitByIndexInput) {
+                                        if let intedInput = Int(splitByIndexInput) {
+                                            splittedChatDatas = MTExporter.shared.splitChatData(in: fullProjData!.chatData, by: .byIndex(intedInput))
+                                            isScreenShotting = Array(repeating: false, count: splittedChatDatas.count)
+                                            splittingMethod = .byIndex(intedInput)
+                                            shottingImageCount = splittedChatDatas.count
+                                        }
+                                    }
+                                Text("条消息进行切割")
+                            }
+                            .padding(.horizontal)
+                        }
+                        Divider()
+                        if splittingMethod == .none {
+                            ScreenshotableView(shotting: $isScreenShotting[0]) { screenshot in
+                                finishHandler(screenshot, 0)
+                            } content: { style in
+                                MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false))
+                            }
+                        } else {
+                            if !splittedChatDatas.isEmpty {
+                                ForEach(0..<splittedChatDatas.count, id: \.self) { i in
+                                    VStack {
+                                        Text("图片 #\(i + 1)")
+                                        ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
+                                            finishHandler(screenshot, i)
+                                        } content: { style in
+                                            MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
+                                                var rangeStart = 0
+                                                for j in 0..<i {
+                                                    rangeStart += splittedChatDatas[j].count
+                                                }
+                                                let rangeEnd = rangeStart + splittedChatDatas[i].count - 1
+                                                return rangeStart...rangeEnd
+                                            }())
+                                        }
+                                        Divider()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .onChange(of: isShottingAll) {
+                        for i in 0..<isScreenShotting.count {
+                            isScreenShotting[i].toggle()
+                        }
+                    }
+                }
+            }
             struct ExportAsImageView: View {
                 @Binding var fullProjData: MTBase.FullData?
                 @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
                 @Binding var currentSelectCharacterImageGroupIndex: Int
                 @Environment(\.dismiss) var dismiss
-                @State var isScreenShotting = [false]
-                @State var splittingMethod = ImageExportSplittingMethod.none
-                @State var splitByIndexInput = "5"
-                @State var splittingIndexInterval = 5
-                @State var chatDatasSplittedByCharacter = [[MTBase.SingleChatData]]()
-                @State var chatDatasSplittedByIndex = [[MTBase.SingleChatData]]()
-                @State var exportingImage = UIImage()
-                @State var screenShotFinishHander: (() -> Void)? = nil
+                @State var splittingMethod = MTExporter.ImageExportSplittingMethod.none
+                @State var isShotting = false
+                @State var shottingCount = 1
+                @State var currentFinishHandler: (UIImage, Int) -> Void = { _, _ in }
                 var body: some View {
                     NavigationStack {
-                        List {
-                            Section(header: Text("图片切割模式")) {
-                                Button(action: {
-                                    splittingMethod = .none
-                                }, label: {
-                                    HStack {
-                                        if splittingMethod == .none {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.blue)
-                                        }
-                                        Text("不切割")
-                                    }
-                                })
-                                Button(action: {
-                                    chatDatasSplittedByCharacter = MTExporter.shared.splitChatData(in: fullProjData!.chatData, by: .byCharacter)
-                                    isScreenShotting = Array(repeating: false, count: chatDatasSplittedByCharacter.count)
-                                    splittingMethod = .byCharacter
-                                }, label: {
-                                    HStack {
-                                        if splittingMethod == .byCharacter {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.blue)
-                                        }
-                                        Text("按照角色切割")
-                                    }
-                                })
-                                Button(action: {
-                                    chatDatasSplittedByIndex = MTExporter.shared.splitChatData(in: fullProjData!.chatData, by: .byIndex(splittingIndexInterval))
-                                    isScreenShotting = Array(repeating: false, count: chatDatasSplittedByIndex.count)
-                                    splittingMethod = .byIndex
-                                }, label: {
-                                    HStack {
-                                        if splittingMethod == .byIndex {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.blue)
-                                        }
-                                        Text("按照消息数切割")
-                                    }
-                                })
-                                if splittingMethod == .byIndex {
-                                    HStack {
-                                        Text("每")
-                                        TextField("", text: $splitByIndexInput)
-                                            .keyboardType(.numberPad)
-                                            .onChange(of: splitByIndexInput) {
-                                                if let intedInput = Int(splitByIndexInput) {
-                                                    splittingIndexInterval = intedInput
-                                                    chatDatasSplittedByIndex = MTExporter.shared.splitChatData(in: fullProjData!.chatData, by: .byIndex(splittingIndexInterval))
-                                                    isScreenShotting = Array(repeating: false, count: chatDatasSplittedByIndex.count)
-                                                }
-                                            }
-                                        Text("条消息进行切割")
-                                    }
-                                }
-                            }
-                            Section(header: Text("预览")) {
-                                VStack {
-                                    if splittingMethod == .none {
-                                        ScreenshotableView(shotting: $isScreenShotting[0]) { screenshot in
-                                            exportingImage = screenshot
-                                            screenShotFinishHander!()
-                                        } content: { style in
-                                            MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false))
-                                        }
-                                    } else if splittingMethod == .byCharacter {
-                                        if chatDatasSplittedByCharacter.count != 0 {
-                                            ForEach(0..<chatDatasSplittedByCharacter.count, id: \.self) { i in
-                                                VStack {
-                                                    Text("图片 #\(i + 1)")
-                                                    ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
-                                                        exportingImage = screenshot
-                                                        debugPrint("ScreenShot \(i)")
-                                                        screenShotFinishHander!()
-                                                    } content: { style in
-                                                        MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
-                                                            var rangeStart = 0
-                                                            for j in 0..<i {
-                                                                rangeStart += chatDatasSplittedByCharacter[j].count
-                                                            }
-                                                            let rangeEnd = rangeStart + chatDatasSplittedByCharacter[i].count - 1
-                                                            return rangeStart...rangeEnd
-                                                        }())
-                                                    }
-                                                    Divider()
-                                                }
-                                            }
-                                        }
-                                    } else if splittingMethod == .byIndex {
-                                        if chatDatasSplittedByIndex.count != 0 {
-                                            ForEach(0..<chatDatasSplittedByIndex.count, id: \.self) { i in
-                                                VStack {
-                                                    Text("图片 #\(i + 1)")
-                                                    ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
-                                                        exportingImage = screenshot
-                                                        screenShotFinishHander!()
-                                                    } content: { style in
-                                                        MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
-                                                            var rangeStart = 0
-                                                            for j in 0..<i {
-                                                                rangeStart += chatDatasSplittedByIndex[j].count
-                                                            }
-                                                            let rangeEnd = rangeStart + chatDatasSplittedByIndex[i].count - 1
-                                                            return rangeStart...rangeEnd
-                                                        }())
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            Section(header: Text("完成导出")) {
+                        ScrollView {
+                            VStack {
+                                ImageShoterView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, splittingMethod: $splittingMethod, isShottingAll: $isShotting, shottingImageCount: $shottingCount, finishHandler: $currentFinishHandler)
                                 Button(action: {
                                     if splittingMethod == .none {
-                                        screenShotFinishHander = {
-                                            saveImageToPhotoLibrary(image: exportingImage)
+                                        currentFinishHandler = { image, index in
+                                            saveImageToPhotoLibrary(image: image)
                                             DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
                                         }
-                                        isScreenShotting[0] = true
+                                        isShotting.toggle()
                                     } else {
-                                        // FIXME: Some Images were Splitted
                                         let alert = AlertAppleMusic17View(title: "导出...", subtitle: "正在导出图片到相册...", icon: .spinnerSmall, duration: 2)
                                         alert.haptic = .warning
                                         let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first
                                         if let window = window {
                                             alert.present(on: window)
                                         }
-                                        for i in 0..<isScreenShotting.count {
-                                            if i != isScreenShotting.count - 1 {
-                                                screenShotFinishHander = {
-                                                    saveImageToPhotoLibrary(image: exportingImage)
-                                                }
-                                            } else {
-                                                screenShotFinishHander = {
-                                                    saveImageToPhotoLibrary(image: exportingImage)
-                                                    alert.dismiss()
-                                                    DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
-                                                }
+                                        DispatchQueue(label: "com.Neinnko.BAGen.Project-Export.Image", qos: .userInitiated).async {
+                                            let group = DispatchGroup()
+                                            var finishedScreenshots = [(UIImage, Int)]()
+                                            currentFinishHandler = { image, index in
+                                                finishedScreenshots.append((image, index))
+                                                group.leave()
                                             }
-                                            isScreenShotting[i].toggle()
+                                            group.notify(queue: .main) {
+                                                finishedScreenshots.sort { lhs, rhs in lhs.1 < rhs.1 }
+                                                for (image, _) in finishedScreenshots {
+                                                    saveImageToPhotoLibrary(image: image)
+                                                }
+                                                alert.dismiss()
+                                                DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
+                                            }
+                                            for _ in 0..<shottingCount {
+                                                group.enter()
+                                            }
+                                            isShotting.toggle()
                                         }
                                     }
                                 }, label: {
-                                    Text("导出到相册...")
+                                    HStack {
+                                        Spacer()
+                                        Text("导出到相册...")
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 5)
                                 })
+                                .buttonStyle(.borderedProminent)
+                                .padding()
                             }
                         }
+                        .scrollDismissesKeyboard(.immediately)
                         .navigationTitle("导出为图片")
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
@@ -1152,21 +1198,104 @@ struct MTEditorView: View {
                         }
                     }
                 }
-                
-                enum ImageExportSplittingMethod {
-                    case none
-                    case byCharacter
-                    case byIndex
-                }
             }
             struct ExportAsVideoView: View {
                 @Binding var fullProjData: MTBase.FullData?
                 @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
                 @Binding var currentSelectCharacterImageGroupIndex: Int
+                @Environment(\.dismiss) var dismiss
+                @State var splittingMethod = MTExporter.ImageExportSplittingMethod.none
+                @State var isShotting = false
+                @State var shottingCount = 1
+                @State var currentFinishHandler: (UIImage, Int) -> Void = { _, _ in }
+                @State var shotImages = [UIImage]()
+                @State var previewUrl: URL?
                 var body: some View {
                     NavigationStack {
-                        // TODO: Video Exporting
+                        ScrollView {
+                            VStack {
+                                ImageShoterView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, splittingMethod: $splittingMethod, isShottingAll: $isShotting, shottingImageCount: $shottingCount, finishHandler: $currentFinishHandler)
+                                Button(action: {
+                                    if splittingMethod == .none {
+                                        currentFinishHandler = { image, index in
+                                            saveImageToPhotoLibrary(image: image)
+                                            DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
+                                        }
+                                        isShotting.toggle()
+                                    } else {
+                                        let alert = AlertAppleMusic17View(title: "导出...", subtitle: "正在导出视频...", icon: .spinnerSmall, duration: 2)
+                                        alert.haptic = .warning
+                                        let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first
+                                        if let window = window {
+                                            alert.present(on: window)
+                                        }
+                                        DispatchQueue(label: "com.Neinnko.BAGen.Project-Export.Video", qos: .userInitiated).async {
+                                            let group = DispatchGroup()
+                                            var finishedScreenshots = [(UIImage, Int)]()
+                                            currentFinishHandler = { image, index in
+                                                finishedScreenshots.append((image, index))
+                                                group.leave()
+                                            }
+                                            group.notify(queue: .main) {
+                                                finishedScreenshots.sort { lhs, rhs in lhs.1 < rhs.1 }
+                                                shotImages.removeAll()
+                                                for (image, _) in finishedScreenshots {
+                                                    shotImages.append(image)
+                                                }
+                                                // MARK: Step 1 - Get All Screenshot, Finished here.
+                                                
+                                                VideoGenerator.fileName = "ExportedProjVideo.m4v"
+                                                VideoGenerator.shouldOptimiseImageForVideo = true
+                                                VideoGenerator.scaleWidth = 1920
+                                                VideoGenerator.current.generate(withImages: shotImages, andAudios: [], andType: .singleAudioMultipleImage, { progress in
+                                                    debugPrint(progress)
+                                                }, outcome: { result in
+                                                    switch result {
+                                                    case .success(let success):
+                                                        previewUrl = success
+                                                    case .failure(let error):
+                                                        print(error)
+                                                    }
+                                                })
+                                                
+                                                alert.dismiss()
+                                                DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将视频导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
+                                            }
+                                            for _ in 0..<shottingCount {
+                                                group.enter()
+                                            }
+                                            isShotting.toggle()
+                                        }
+                                    }
+                                }, label: {
+                                    HStack {
+                                        Spacer()
+                                        Text("开始导出")
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 5)
+                                })
+                                .buttonStyle(.borderedProminent)
+                                .padding()
+                            }
+                        }
+                        .navigationTitle("导出为视频")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button(action: {
+                                    dismiss()
+                                }, label: {
+                                    Image(systemName: "xmark")
+                                        .bold()
+                                        .foregroundStyle(Color.gray)
+                                })
+                                .buttonStyle(.bordered)
+                                .buttonBorderShape(.circle)
+                            }
+                        }
+                        .quickLookPreview($previewUrl)
                     }
+                    .interactiveDismissDisabled()
                 }
             }
             

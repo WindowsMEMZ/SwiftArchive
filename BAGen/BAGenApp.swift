@@ -9,8 +9,6 @@ import Darwin
 import SwiftUI
 import UserNotifications
 
-var debugConsoleText = ""
-var nowScene = NowScene.Intro
 var fsEnterProjName = ""
 var mtEnterProjName = ""
 var mtIsHaveUnsavedChange = false
@@ -22,7 +20,6 @@ struct BAGenApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) var scenePhase
     @State var debugConsoleContent = ""
-    @State var nowMainScene = NowScene.Intro
     var body: some Scene {
         WindowGroup {
             MTEditChooserView()
@@ -30,21 +27,7 @@ struct BAGenApp: App {
         .onChange(of: scenePhase) {
             switch scenePhase {
             case .active:
-                // applicationDidFinishLaunching
-                if UserDefaults.standard.string(forKey: "CrashData") != nil {
-                    nowScene = .CrashReporter
-                }
-                
                 UIApplication.shared.isIdleTimerDisabled = true
-                signal(SIGABRT, { c in
-                    CrashHander(signalStr: "SIGABRT", signalCode: c)
-                })
-                signal(SIGTRAP, { c in
-                    CrashHander(signalStr: "SIGTRAP", signalCode: c)
-                })
-                signal(SIGILL, { c in
-                    CrashHander(signalStr: "SIGILL", signalCode: c)
-                })
                 
                 UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
                     if granted {
@@ -80,49 +63,6 @@ struct BAGenApp: App {
     }
 }
 
-enum NowScene {
-    case Intro
-    case TypeChoose
-    case FSEditChooser
-    case FSEditor
-    case MTEditChooser
-    case MTEditor
-    case EachCharacters
-    case CrashReporter
-}
-
-func ChangeScene(to sceneName: NowScene) {
-    nowScene = sceneName
-}
-
 class AppDelegate: NSObject, UIApplicationDelegate {
     
-}
-
-func CrashHander(signalStr: String, signalCode: Int32) {
-    let fullTrack = """
-    -------------------------------------
-    Translated Report (Full Report Below)
-    -------------------------------------
-    
-    Incident Identifier: \(UUID().uuidString)
-    Hardware Model:      \(UIDevice.current.model)
-    Process:             \(ProcessInfo.processInfo.processName) [\(ProcessInfo.processInfo.processIdentifier)]
-    Version:             \(Bundle.main.infoDictionary!["CFBundleShortVersionString"]! as! String)
-    
-    Date/Time:           \({ () -> String in
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd hh:mm:ss"
-        return df.string(from: Date())
-    }())
-    OS Version:          \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)
-    Report Version:      1
-    
-    Exception Type:  (\(signalStr))
-    Termination Reason: (\(signalStr) \(signalCode))
-    
-    \(Thread.callStackSymbols)
-    """
-    UserDefaults.standard.set(fullTrack, forKey: "CrashData")
-    exit(1)
 }

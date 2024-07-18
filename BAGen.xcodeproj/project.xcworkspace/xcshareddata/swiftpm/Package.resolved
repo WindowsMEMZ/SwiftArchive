@@ -1,12 +1,13 @@
 {
+  "originHash" : "1ec2977417d5e7d37bd2a3d86a18aa4186bf3e6dad4bb944ce7cc6d3b7885b97",
   "pins" : [
     {
       "identity" : "alamofire",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Alamofire/Alamofire",
       "state" : {
-        "revision" : "f82c23a8a7ef8dc1a49a8bfc6a96883e79121864",
-        "version" : "5.5.0"
+        "revision" : "f455c2975872ccd2d9c81594c658af65716e9b9a",
+        "version" : "5.9.1"
       }
     },
     {
@@ -14,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lixiang1994/AttributedString",
       "state" : {
-        "revision" : "1aa8728d33d0cd1588d1de999f04fd9053c0df36",
-        "version" : "3.3.5"
+        "revision" : "f3a2b4d4805bc96df0f11061e5b33fefb3a337c6",
+        "version" : "3.4.1"
       }
     },
     {
@@ -24,7 +25,7 @@
       "location" : "https://github.com/Darock-Studio/DarockKit",
       "state" : {
         "branch" : "main",
-        "revision" : "c654f3712fdf3064ca5fc23044381cd96a20093b"
+        "revision" : "9a43584cb32e53ae339532a6f49c19c7bc17aa8a"
       }
     },
     {
@@ -32,8 +33,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RickeyBoy/ScreenshotableView",
       "state" : {
-        "revision" : "3c140215fb12c7e8aef78e853006110350455c5b",
-        "version" : "1.0.0"
+        "revision" : "4dcc274e518756c9bb6eabc153b2edb51a7bd482",
+        "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "swift-video-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dev-labs-bg/swift-video-generator",
+      "state" : {
+        "revision" : "0735b1ea6a9cd28e0fd952e4b1801367fddd5501",
+        "version" : "1.4.1"
       }
     },
     {
@@ -64,5 +74,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

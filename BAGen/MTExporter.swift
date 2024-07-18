@@ -52,7 +52,7 @@ class MTExporter {
         }
     }
     
-    enum ImageExportSplittingMethod {
+    enum ImageExportSplittingMethod: Equatable {
         case none
         case byCharacter
         case byIndex(Int)
