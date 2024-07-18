@@ -688,18 +688,22 @@ struct MTEditorView: View {
                     var dismissSheet: DismissAction
                     var choseSchoolName: String
                     @State var characters = [String]()
+                    @State var searchText = ""
                     var body: some View {
                         List {
                             Section {
                                 if !characters.isEmpty {
                                     ForEach(0..<characters.count, id: \.self) { i in
-                                        NavigationLink(destination: { ImageChooseView(currentSelectCharacterData: $currentSelectCharacterData, fullProjData: $fullProjData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, dismissSheet: dismissSheet, choseSchoolName: choseSchoolName, choseCharacterName: characters[i]) }, label: {
-                                            Text(characters[i])
-                                        })
+                                        if searchText.isEmpty || characters[i].contains(searchText) {
+                                            NavigationLink(destination: { ImageChooseView(currentSelectCharacterData: $currentSelectCharacterData, fullProjData: $fullProjData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, dismissSheet: dismissSheet, choseSchoolName: choseSchoolName, choseCharacterName: characters[i]) }, label: {
+                                                Text(characters[i])
+                                            })
+                                        }
                                     }
                                 }
                             }
                         }
+                        .searchable(text: $searchText)
                         .navigationTitle("选择差分表情 - 学生")
                         .onAppear {
                             do {
