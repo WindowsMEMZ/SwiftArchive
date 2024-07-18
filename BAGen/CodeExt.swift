@@ -227,6 +227,17 @@ func saveImageToPhotoLibrary(image: UIImage) {
         }
     }
 }
+func saveVideoToPhotoLibrary(video: URL) {
+    PHPhotoLibrary.shared().performChanges {
+        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: video)
+    } completionHandler: { success, error in
+        if success {
+            print("视频已成功保存到相册。")
+        } else if let error = error {
+            print("保存视频到相册时发生错误: \(error)")
+        }
+    }
+}
 
 /// 毫秒线程休眠
 /// - Parameter milliseconds: 等待的毫秒数

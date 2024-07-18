@@ -7,7 +7,6 @@
 
 import SwiftUI
 import PhotosUI
-import QuickLook
 import DarockKit
 import SwiftyJSON
 import ScreenshotableView
@@ -279,7 +278,7 @@ struct MTEditorView: View {
                                 }
                             } else {
                                 // MARK: Other Character Message View
-                                HStack {
+                                HStack(alignment: .top) {
                                     let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
                                     if fullProjData!.chatData[i].shouldShowAsNew {
                                         Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "webp")!))!)
@@ -1206,10 +1205,10 @@ struct MTEditorView: View {
                 @Environment(\.dismiss) var dismiss
                 @State var splittingMethod = MTExporter.ImageExportSplittingMethod.none
                 @State var isShotting = false
+                @State var isExporting = false
                 @State var shottingCount = 1
                 @State var currentFinishHandler: (UIImage, Int) -> Void = { _, _ in }
                 @State var shotImages = [UIImage]()
-                @State var previewUrl: URL?
                 @State var singleImageDuration = 5.0
                 @State var singleImageDurationInput = "5.0"
                 @State var bgmName = ""
@@ -1250,10 +1249,12 @@ struct MTEditorView: View {
                                 .frame(height: 300)
                                 Divider()
                                 Button(action: {
+                                    isExporting = true
                                     if splittingMethod == .none {
                                         currentFinishHandler = { image, index in
                                             saveImageToPhotoLibrary(image: image)
                                             DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将图片导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
+                                            isExporting = false
                                         }
                                         isShotting.toggle()
                                     } else {
@@ -1289,18 +1290,20 @@ struct MTEditorView: View {
                                                 VideoGenerator.fileName = "ExportVideo"
                                                 VideoGenerator.shouldOptimiseImageForVideo = true
                                                 VideoGenerator.scaleWidth = 1920
-                                                VideoGenerator.videoDurationInSeconds = singleImageDuration * Double(shotImages.count)
+                                                VideoGenerator.videoDurationInSeconds = singleImageDuration
+                                                VideoGenerator.maxVideoLengthInSeconds = singleImageDuration * Double(shotImages.count)
                                                 VideoGenerator.current.generate(withImages: shotImages, andAudios: audioUrls, andType: .singleAudioMultipleImage, { progress in
                                                     debugPrint(progress)
                                                 }, outcome: { result in
                                                     switch result {
                                                     case .success(let success):
-                                                        previewUrl = success
+                                                        saveVideoToPhotoLibrary(video: success)
                                                         alert.dismiss()
                                                         DarockKit.UIAlert.shared.presentAlert(title: "导出", subtitle: "已将视频导出到相册", icon: .done, style: .iOS17AppleMusic, haptic: .success)
                                                     case .failure(let error):
                                                         print(error)
                                                     }
+                                                    isExporting = false
                                                 })
                                             }
                                             isShotting.toggle()
@@ -1315,6 +1318,7 @@ struct MTEditorView: View {
                                     .padding(.vertical, 5)
                                 })
                                 .buttonStyle(.borderedProminent)
+                                .disabled(isExporting)
                                 .padding()
                             }
                         }
@@ -1333,7 +1337,6 @@ struct MTEditorView: View {
                                 .buttonBorderShape(.circle)
                             }
                         }
-                        .quickLookPreview($previewUrl)
                     }
                     .interactiveDismissDisabled()
                 }
@@ -1363,7 +1366,7 @@ struct MTEditorView: View {
                                 })
                                 if !allMusicNames.isEmpty {
                                     ForEach(0..<allMusicNames.count, id: \.self) { i in
-                                        if searchText.isEmpty || allMusicNames[i].contains(searchText) {
+                                        if searchText.isEmpty || allMusicNames[i].lowercased().contains(searchText.lowercased()) {
                                             Button(action: {
                                                 currentChoseName = allMusicNames[i]
                                                 do {
