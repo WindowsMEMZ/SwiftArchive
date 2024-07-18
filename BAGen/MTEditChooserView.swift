@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DarockKit
 import UniformTypeIdentifiers
 
 struct MTEditChooserView: View {
@@ -32,6 +33,24 @@ struct MTEditChooserView: View {
                 }
             }
             .navigationTitle("SwiftArchive")
+            .refreshable {
+                RefreshProjects()
+            }
+            .fileImporter(isPresented: $isImportDocPickerPresented, allowedContentTypes: [.sapm]) { result in
+                switch result {
+                case .success(let url):
+                    _ = url.startAccessingSecurityScopedResource()
+                    do {
+                        try String(contentsOf: url, encoding: .utf8).write(toFile: NSHomeDirectory() + "/Documents/MTProj/\(url.lastPathComponent)", atomically: true, encoding: .utf8)
+                        RefreshProjects()
+                    } catch {
+                        print(error)
+                    }
+                    url.stopAccessingSecurityScopedResource()
+                case .failure(let error):
+                    AlertKitAPI.present(title: "导入项目时出错", subtitle: error.localizedDescription, icon: .error, style: .iOS17AppleMusic, haptic: .error)
+                }
+            }
             .alert("新建项目", isPresented: $isNewProjPresented, actions: {
                 TextField("项目名", text: $newProjNameInput)
                 Button(role: .cancel, action: {
@@ -59,20 +78,27 @@ struct MTEditChooserView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
+                        isImportDocPickerPresented = true
+                    }, label: {
+                        Image(systemName: "square.and.arrow.down")
+                    })
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
                         isNewProjPresented = true
                     }, label: {
                         Image(systemName: "plus")
                     })
                 }
             }
-        }
-        .onAppear {
-            if isFirstUsing {
-                AppFileManager(path: "").CreateFolder("MTProj")
-                isFirstUsing = false
+            .onAppear {
+                if isFirstUsing {
+                    AppFileManager(path: "").CreateFolder("MTProj")
+                    isFirstUsing = false
+                }
+                debugPrint(AppFileManager(path: "").GetRoot() ?? "No Root Files")
+                RefreshProjects()
             }
-            debugPrint(AppFileManager(path: "").GetRoot() ?? "No Root Files")
-            RefreshProjects()
         }
     }
     

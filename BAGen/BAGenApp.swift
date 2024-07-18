@@ -23,73 +23,12 @@ struct BAGenApp: App {
     @Environment(\.scenePhase) var scenePhase
     @State var debugConsoleContent = ""
     @State var nowMainScene = NowScene.Intro
-    @State var isAlertPresented = false
-    @State var alertContent: (() -> AnyView)? = nil
     var body: some Scene {
         WindowGroup {
-            Group {
-//                switch nowMainScene {
-//                case .Intro:
-//                    ContentView()
-//                        .onAppear {
-//                            Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
-//                                nowMainScene = nowScene
-//                                isAlertPresented = isGlobalAlertPresented
-//                                alertContent = globalAlertContent
-//                            }
-//                        }
-//                case .TypeChoose:
-//                    TypeChooseView()
-//                case .FSEditChooser:
-//                    FSEditChooserView()
-//                case .FSEditor:
-//                    FSEditorView()
-//                case .MTEditChooser:
-//                    MTEditChooserView()
-//                case .MTEditor:
-//                    MTEditorView()
-//                case .EachCharacters:
-//                    EachCharactersView.Serika()
-//                case .CrashReporter:
-//                    CrashReporterView()
-//                }
-                MTEditChooserView()
-            }
-            .overlay {
-                if isAlertPresented, let content = globalAlertContent {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(hex: 0xECECEC))
-                            .frame(width: 350, height: 260)
-                        VStack {
-                            HStack {
-                                Image("PopupTopBarImage")
-                                Spacer()
-                                Button(action: {
-                                    isGlobalAlertPresented = false
-                                    globalAlertContent = nil
-                                }, label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(Color(hex: 0x283D59))
-                                })
-                                .padding(.horizontal, 5)
-                            }
-                            Spacer()
-                            Image("PopupBackgroundImage")
-                        }
-                        VStack {
-                            Spacer()
-                                .frame(height: 40)
-                            content()
-                        }
-                    }
-                    .frame(width: 350, height: 260)
-                }
-            }
+            MTEditChooserView()
         }
-        .onChange(of: scenePhase) { value in
-            switch value {
+        .onChange(of: scenePhase) {
+            switch scenePhase {
             case .active:
                 // applicationDidFinishLaunching
                 if UserDefaults.standard.string(forKey: "CrashData") != nil {

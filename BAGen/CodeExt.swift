@@ -9,6 +9,7 @@ import Photos
 import SwiftUI
 import DarockKit
 import Foundation
+import AVFoundation
 import MobileCoreServices
 import UniformTypeIdentifiers
 
@@ -248,6 +249,86 @@ struct ShareSheet: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
         
     }
+}
+
+func createVideo(from images: [UIImage], outputURL: URL, frameDuration: CMTime, completion: @escaping (Result<URL, Error>) -> Void) {
+    let videoSize = CGSize(width: 1920, height: 1080)
+    
+    // Create an AVAssetWriter
+    guard let assetWriter = try? AVAssetWriter(outputURL: outputURL, fileType: .mp4) else {
+        completion(.failure(NSError(domain: "createVideo", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create AVAssetWriter"])))
+        return
+    }
+    
+    // Set up the video input
+    let videoSettings: [String: Any] = [
+        AVVideoCodecKey: AVVideoCodecType.h264,
+        AVVideoWidthKey: videoSize.width,
+        AVVideoHeightKey: videoSize.height
+    ]
+    let assetWriterInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+    
+    // Set up the pixel buffer adaptor
+    let sourceBufferAttributes: [String: Any] = [
+        kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32ARGB),
+        kCVPixelBufferWidthKey as String: videoSize.width,
+        kCVPixelBufferHeightKey as String: videoSize.height
+    ]
+    let pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes: sourceBufferAttributes)
+    
+    assetWriter.add(assetWriterInput)
+    
+    // Start writing
+    assetWriter.startWriting()
+    assetWriter.startSession(atSourceTime: .zero)
+    
+    // Append the images as pixel buffers
+    let mediaQueue = DispatchQueue(label: "mediaInputQueue")
+    var frameCount: Int64 = 0
+    
+    assetWriterInput.requestMediaDataWhenReady(on: mediaQueue) {
+        for image in images {
+            if assetWriterInput.isReadyForMoreMediaData {
+                guard let pixelBuffer = pixelBuffer(from: image, size: videoSize) else { continue }
+                let presentationTime = CMTimeMultiply(frameDuration, multiplier: Int32(frameCount))
+                pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: presentationTime)
+                frameCount += 1
+            }
+        }
+        
+        // Finish writing
+        assetWriterInput.markAsFinished()
+        assetWriter.finishWriting {
+            if assetWriter.status == .completed {
+                completion(.success(outputURL))
+            } else {
+                completion(.failure(assetWriter.error ?? NSError(domain: "createVideo", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to finish writing video"])))
+            }
+        }
+    }
+}
+private func pixelBuffer(from image: UIImage, size: CGSize) -> CVPixelBuffer? {
+    var pixelBuffer: CVPixelBuffer?
+    let options: [String: Any] = [
+        kCVPixelBufferCGImageCompatibilityKey as String: true,
+        kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
+    ]
+    let status = CVPixelBufferCreate(kCFAllocatorDefault, Int(size.width), Int(size.height), kCVPixelFormatType_32ARGB, options as CFDictionary, &pixelBuffer)
+    guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
+        return nil
+    }
+    
+    CVPixelBufferLockBaseAddress(buffer, [])
+    let pixelData = CVPixelBufferGetBaseAddress(buffer)
+    
+    let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+    let context = CGContext(data: pixelData, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
+    
+    context?.draw(image.cgImage!, in: CGRect(origin: .zero, size: size))
+    
+    CVPixelBufferUnlockBaseAddress(buffer, [])
+    
+    return buffer
 }
 
 extension UTType {
