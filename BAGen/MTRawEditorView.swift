@@ -15,10 +15,6 @@ struct MTRawEditorView: View {
     @Environment(\.dismiss) var dismiss
     @State var fullFileContent: ASAttributedString = .init(string: "", .font(.monospacedSystemFont(ofSize: 14, weight: .regular)))
     @State var allCharacterIds = [String]()
-    @State var timerLastTimeRawString = ""
-    @State var textEditorCursorRange = NSRange()
-    @State var codeHighlightingFinishBehavior: (() -> Void)? = nil
-    @State var shouldRespondToChanges = true
     @State var isCodeHelpPresented = false
     @State var codeIssues = [CodeIssue]()
     var body: some View {
@@ -70,7 +66,10 @@ struct MTRawEditorView: View {
                     .foregroundColor(.white)
                     .sheet(isPresented: $isCodeHelpPresented, content: {RawCodeHelpView()})
                 }
-                CodeTextEditor(text: $fullFileContent, cursorRange: $textEditorCursorRange, codeHighlightingFinishBehavior: $codeHighlightingFinishBehavior, shouldRespondToChanges: $shouldRespondToChanges)
+                CodeTextEditor(text: $fullFileContent) {
+                    highlightCode()
+                }
+                .scrollDismissesKeyboard(.interactively)
                 List {
                     if codeIssues.count != 0 {
                         ForEach(0..<codeIssues.count, id: \.self) { i in
@@ -92,6 +91,7 @@ struct MTRawEditorView: View {
                 .frame(width: UIScreen.main.bounds.width, height: 100)
             }
             .navigationTitle("源文件编辑")
+            .navigationBarTitleDisplayMode(.inline)
         }
         .onAppear {
             // Init Character IDs
@@ -103,82 +103,90 @@ struct MTRawEditorView: View {
             let rStr = try! String(contentsOfFile: AppFileManager(path: "MTProj").GetFilePath(name: projName).path)
             fullFileContent = .init(string: rStr, .font(.monospacedSystemFont(ofSize: 14, weight: .regular)))
             highlightCode()
-            
-            Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-                if timerLastTimeRawString != fullFileContent.value.string {
-                    timerLastTimeRawString = fullFileContent.value.string
-                    highlightCode()
-                }
-            }
         }
     }
     
     struct RawCodeHelpView: View {
+        @Environment(\.dismiss) var dismiss
         var body: some View {
-            ScrollView {
-                VStack {
-                    Text("""
-                    基本格式: 
-                    文本对话: {角色 ID(String)}|{头像组下标(Int)}|{内容}|{ShowldShowAsNew(Bool)}
-                    图片:    {角色 ID(String)}|{头像组下标(Int)}|"%%TImage%%*"(图像标记){图像 Base64}|{ShowldShowAsNew(Bool)}
-                    按行分隔
-                    角色 ID 为 "Sensei" 时显示消息由我方发出
-                    角色 ID 为 "SpecialEvent" 使显示羁绊剧情, 此时内容为羁绊剧情对象
-                    角色 ID 为 "System" 时显示系统信息
-                    """)
+            NavigationStack {
+                ScrollView {
+                    VStack {
+                        Text("""
+                        基本格式: 
+                        文本对话: {角色 ID(String)}|{头像组下标(Int)}|{内容}|{ShowldShowAsNew(Bool)}
+                        图片:    {角色 ID(String)}|{头像组下标(Int)}|"%%TImage%%*"(图像标记){图像 Base64|图像路径(./开头)}|{ShouldShowAsNew(Bool)}
+                        按行分隔
+                        角色 ID 为 "Sensei" 时显示消息由我方发出
+                        角色 ID 为 "SpecialEvent" 时显示羁绊剧情, 此时内容为羁绊剧情对象
+                        角色 ID 为 "System" 时显示系统信息
+                        """)
+                    }
+                    .padding()
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {
+                            dismiss()
+                        }, label: {
+                            Image(systemName: "xmark")
+                                .bold()
+                                .foregroundStyle(Color.gray)
+                        })
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.circle)
+                    }
                 }
             }
         }
     }
     
     func highlightCode() {
-        debugPrint("HLD")
-        
-        let rawString = fullFileContent.value.string
-        fullFileContent = .init(string: fullFileContent.value.string, .font(.monospacedSystemFont(ofSize: 14, weight: .regular)))
-        for cid in allCharacterIds {
-            if rawString.contains(cid) {
-                let ranges = findRanges(in: rawString, for: cid)
-                for range in ranges {
-                    fullFileContent.add(attributes: [.foreground(.init(Color(hex: 0xA485CA)))], checkings: [.range(NSRange(range, in: rawString))])
+        DispatchQueue(label: "com.Neinnko.BAGen.Source-Editor.SourceKit", qos: .userInitiated).async {
+            let rawString = fullFileContent.value.string
+            var newFull = ASAttributedString(string: fullFileContent.value.string, .font(.monospacedSystemFont(ofSize: 14, weight: .regular)))
+            for cid in allCharacterIds {
+                if rawString.contains(cid) {
+                    let ranges = findRanges(in: rawString, for: cid)
+                    for range in ranges {
+                        newFull.add(attributes: [.foreground(.init(Color(hex: 0xA485CA)))], checkings: [.range(NSRange(range, in: rawString))])
+                    }
                 }
             }
-        }
-        fullFileContent.add(attributes: [.foreground(.blue)], checkings: [.regex("\\|[0-9]\\|")])
-        if rawString.contains("Sensei") {
-            for range in findRanges(in: rawString, for: "Sensei") {
-                fullFileContent.add(attributes: [.foreground(.init(Color(hex: 0x0671A6))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+            newFull.add(attributes: [.foreground(.blue)], checkings: [.regex("\\|[0-9]\\|")])
+            if rawString.contains("Sensei") {
+                for range in findRanges(in: rawString, for: "Sensei") {
+                    newFull.add(attributes: [.foreground(.init(Color(hex: 0x0671A6))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+                }
             }
-        }
-        if rawString.contains("System") {
-            for range in findRanges(in: rawString, for: "System") {
-                fullFileContent.add(attributes: [.foreground(.init(Color(hex: 0x0671A6))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+            if rawString.contains("System") {
+                for range in findRanges(in: rawString, for: "System") {
+                    newFull.add(attributes: [.foreground(.init(Color(hex: 0x0671A6))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+                }
             }
-        }
-        if rawString.contains("SpecialEvent") {
-            for range in findRanges(in: rawString, for: "SpecialEvent") {
-                fullFileContent.add(attributes: [.foreground(.init(Color(hex: 0x0671A6))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+            if rawString.contains("SpecialEvent") {
+                for range in findRanges(in: rawString, for: "SpecialEvent") {
+                    newFull.add(attributes: [.foreground(.init(Color(hex: 0x0671A6))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+                }
             }
-        }
-        if rawString.contains("false") {
-            for range in findRanges(in: rawString, for: "false") {
-                fullFileContent.add(attributes: [.foreground(.init(Color(hex: 0xAD4BA5))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], checkings: [.range(NSRange(range, in: rawString))])
+            if rawString.contains("false") {
+                for range in findRanges(in: rawString, for: "false") {
+                    newFull.add(attributes: [.foreground(.init(Color(hex: 0xAD4BA5))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], checkings: [.range(NSRange(range, in: rawString))])
+                }
             }
-        }
-        if rawString.contains("true") {
-            for range in findRanges(in: rawString, for: "true") {
-                fullFileContent.add(attributes: [.foreground(.init(Color(hex: 0xAD4BA5))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], checkings: [.range(NSRange(range, in: rawString))])
+            if rawString.contains("true") {
+                for range in findRanges(in: rawString, for: "true") {
+                    newFull.add(attributes: [.foreground(.init(Color(hex: 0xAD4BA5))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], checkings: [.range(NSRange(range, in: rawString))])
+                }
             }
-        }
-        if rawString.contains("|") {
-            for range in findRanges(in: rawString, for: "|") {
-                fullFileContent.add(attributes: [.foreground(.init(Color(hex: 0xCB291A))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+            if rawString.contains("|") {
+                for range in findRanges(in: rawString, for: "|") {
+                    newFull.add(attributes: [.foreground(.init(Color(hex: 0xCB291A))), .font(.monospacedSystemFont(ofSize: 14, weight: .semibold))], range: NSRange(range, in: rawString))
+                }
             }
+            
+            checkCodeIssues(newFull)
         }
-        
-        checkCodeIssues()
-        
-        shouldRespondToChanges = false
         
         func findRanges(in text: String, for searchText: String) -> [Range<String.Index>] {
             var searchStartIndex = text.startIndex
@@ -192,16 +200,16 @@ struct MTRawEditorView: View {
             return ranges
         }
     }
-    func checkCodeIssues() {
+    func checkCodeIssues(_ newFull: ASAttributedString) {
         codeIssues.removeAll()
         // Check Code
-        let spdByLine = fullFileContent.value.string.split(separator: "\n").map({ return String($0) })
+        let spdByLine = newFull.value.string.split(separator: "\n").map({ return String($0) })
         for i in 0..<spdByLine.count {
             if (i == spdByLine.count - 1) && spdByLine[i] == "" { break }
             let spdEachPart = spdByLine[i].split(separator: "|").map { return String($0) }
             if spdEachPart.count == 4 {
                 if !allCharacterIds.contains(spdEachPart[0]) && spdEachPart[0] != "Sensei" && spdEachPart[0] != "System" && spdEachPart[0] != "SpecialEvent" {
-                    codeIssues.append(.init(id: "MT003", desc: "角色ID不存在", line: i + 1))
+                    codeIssues.append(.init(id: "MT003", desc: "角色 ID 不存在", line: i + 1))
                 }
                 if spdEachPart[3] != "false" && spdEachPart[3] != "true" {
                     codeIssues.append(.init(id: "MT004", desc: "ShouldShowAsNew 标记应当为Bool值", line: i + 1))
@@ -215,20 +223,16 @@ struct MTRawEditorView: View {
             }
         }
         // Highlight Line with Issue
+        var fullCopy = newFull
         for issue in codeIssues {
             let line = issue.line
             var hRangeStart = line - 1
             for i in 0..<line - 1 {
                 hRangeStart += spdByLine[i].count
             }
-            fullFileContent.add(attributes: [.background(.init(Color(hex: 0xFFEFEE)))], range: NSRange(location: hRangeStart, length: spdByLine[line - 1].count))
+            fullCopy.add(attributes: [.background(.init(Color(hex: 0xFFEFEE)))], range: NSRange(location: hRangeStart, length: spdByLine[line - 1].count + 1))
         }
-        
-        
-        if let fb = codeHighlightingFinishBehavior {
-            fb()
-            debugPrint("FBD")
-        }
+        fullFileContent = fullCopy
     }
     
     struct CodeIssue {
@@ -240,9 +244,7 @@ struct MTRawEditorView: View {
 
 struct CodeTextEditor: UIViewRepresentable {
     @Binding var text: ASAttributedString
-    @Binding var cursorRange: NSRange
-    @Binding var codeHighlightingFinishBehavior: (() -> Void)?
-    @Binding var shouldRespondToChanges: Bool
+    var onChange: () -> Void
     
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
@@ -254,7 +256,13 @@ struct CodeTextEditor: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIViewType, context: Context) {
-        uiView.attributed.text = text
+        if uiView.attributed.text != text {
+            let cursorRange = uiView.selectedRange
+            let scrollOffset = uiView.contentOffset
+            uiView.attributed.text = text
+            uiView.selectedRange = cursorRange
+            uiView.setContentOffset(scrollOffset, animated: false)
+        }
     }
     
     func makeCoordinator() -> Coordinator {
@@ -269,26 +277,8 @@ struct CodeTextEditor: UIViewRepresentable {
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            debugPrint("TVChanged")
             parent.text = textView.attributed.text
-            parent.codeHighlightingFinishBehavior = {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
-                    debugPrint(self.parent.cursorRange)
-                    textView.selectedRange = self.parent.cursorRange
-                    self.parent.shouldRespondToChanges = true
-                }
-            }
-        }
-        func textViewDidChangeSelection(_ textView: UITextView) {
-            if parent.shouldRespondToChanges {
-                debugPrint("Selection Changed")
-                parent.cursorRange = textView.selectedRange
-                debugPrint(parent.cursorRange)
-            }
+            parent.onChange()
         }
     }
-}
-
-#Preview {
-    MTRawEditorView(projName: "") // DO NOT Preview
 }

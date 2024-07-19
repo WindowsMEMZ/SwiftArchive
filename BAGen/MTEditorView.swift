@@ -17,7 +17,7 @@ import SwiftVideoGenerator
 // 图片:    {角色 ID(String)}|{头像组下标(Int)}|"%%TImage%%*"(图像标记){图像 Base64|图像路径(./开头)}|{ShouldShowAsNew(Bool)}
 // 按行分隔
 // 角色 ID 为 "Sensei" 时显示消息由我方发出
-// 角色 ID 为 "SpecialEvent" 使显示羁绊剧情, 此时内容为羁绊剧情对象
+// 角色 ID 为 "SpecialEvent" 时显示羁绊剧情, 此时内容为羁绊剧情对象
 // 角色 ID 为 "System" 时显示系统信息
 
 //!!!: On this view, UIScreen.main.bounds' height & width were exchanged
@@ -25,6 +25,7 @@ struct MTEditorView: View {
     var projName: String = mtEnterProjName
     @Environment(\.dismiss) var dismiss
     @FocusState var messageInputFocusState
+    @Namespace var chatScrollLastItem
     @State var fullProjData: MTBase.FullData?
     @State var newMessageTextCache = ""
     @State var isChatActionsPresented = false
@@ -46,6 +47,9 @@ struct MTEditorView: View {
                     ScrollView {
                         if fullProjData != nil {
                             MainChatsView(fullProjData: $fullProjData, newMessageTextCache: $newMessageTextCache, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: $isInserting)
+                                .onAppear {
+                                    scrollProxy.scrollTo(chatScrollLastItem)
+                                }
                         } else {
                             ProgressView()
                             Text("正在载入...")
@@ -153,8 +157,11 @@ struct MTEditorView: View {
         @Binding var currentSelectCharacterImageGroupIndex: Int
         @Binding var isInserting: Bool
         var displayMessageIndexRange: ClosedRange<Int>? = nil // For ScreenShot
+        @Namespace var chatScrollLastItem
         var body: some View {
             VStack {
+                Spacer()
+                    .frame(height: 5)
                 ForEach(0..<fullProjData!.chatData.count, id: \.self) { i in
                     if displayMessageIndexRange == nil || (displayMessageIndexRange ?? 0...1).contains(i) {
                         Group {
@@ -357,7 +364,7 @@ struct MTEditorView: View {
                                     Spacer()
                                 }
                                 .padding(.horizontal, 10)
-                                .padding(.vertical, -5)
+                                .padding(.vertical, -3)
                                 .frame(maxWidth: UIScreen.main.bounds.height - 50)
                             }
                         }
@@ -386,6 +393,9 @@ struct MTEditorView: View {
                         .id(i)
                     }
                 }
+                Spacer()
+                    .frame(height: 5)
+                    .id(chatScrollLastItem)
             }
             .background(Color(hex: 0xFFF6DD))
         }
@@ -780,7 +790,7 @@ struct MTEditorView: View {
                                                     Image(uiImage: UIImage(contentsOfFile: Bundle.main.bundlePath + "/AvatorDiffs/\(choseSchoolName)/\(choseCharacterName)/\(images[i])")!)
                                                         .resizable()
                                                         .scaledToFit()
-                                                        .frame(width: 50)
+                                                        .frame(width: 120)
                                                     Text("差分表情 #\(i + 1)")
                                                 }
                                             })
@@ -998,8 +1008,9 @@ struct MTEditorView: View {
                                 Text("编辑源文件")
                             })
                             .fullScreenCover(isPresented: $isRawEditorPresented, onDismiss: {
-                                
-                            }, content: {MTRawEditorView(projName: projName)})
+                                let fullFileContent = try! String(contentsOfFile: AppFileManager(path: "MTProj").GetFilePath(name: projName).path)
+                                fullProjData = MTBase().toFullData(byString: fullFileContent)
+                            }, content: { MTRawEditorView(projName: projName) })
                         }
                     }
                     .navigationTitle("项目管理")

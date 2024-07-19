@@ -15,6 +15,7 @@ struct MTEditChooserView: View {
     @State var isImportDocPickerPresented = false
     @State var isNewProjPresented = false
     @State var newProjNameInput = ""
+    @State var isFeedbackPresented = false
     var body: some View {
         NavigationStack {
             List {
@@ -51,6 +52,7 @@ struct MTEditChooserView: View {
                     AlertKitAPI.present(title: "导入项目时出错", subtitle: error.localizedDescription, icon: .error, style: .iOS17AppleMusic, haptic: .error)
                 }
             }
+            .sheet(isPresented: $isFeedbackPresented, content: { FeedbackView() })
             .alert("新建项目", isPresented: $isNewProjPresented, actions: {
                 TextField("项目名", text: $newProjNameInput)
                 Button(role: .cancel, action: {
@@ -76,6 +78,13 @@ struct MTEditChooserView: View {
                 Text("项目信息")
             })
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: {
+                        isFeedbackPresented = true
+                    }, label: {
+                        Image(systemName: "exclamationmark.bubble")
+                    })
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         isImportDocPickerPresented = true

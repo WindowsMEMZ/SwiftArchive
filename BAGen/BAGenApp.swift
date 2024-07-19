@@ -63,5 +63,9 @@ struct BAGenApp: App {
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenString = deviceToken.hexEncodedString()
+        debugPrint(tokenString)
+        UserDefaults.standard.set(tokenString, forKey: "UserNotificationToken")
+    }
 }
