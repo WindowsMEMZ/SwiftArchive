@@ -1,5 +1,5 @@
 {
-  "originHash" : "1ec2977417d5e7d37bd2a3d86a18aa4186bf3e6dad4bb944ce7cc6d3b7885b97",
+  "originHash" : "4dde150d02caab740485c5313a0eedaf0acdfc9a37636fd7cc9d80e8544bbb7a",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -25,7 +25,7 @@
       "location" : "https://github.com/Darock-Studio/DarockKit",
       "state" : {
         "branch" : "main",
-        "revision" : "9a43584cb32e53ae339532a6f49c19c7bc17aa8a"
+        "revision" : "c36f40dc6174d729836a9fe1cb45bd18573589e5"
       }
     },
     {
@@ -53,6 +53,15 @@
       "state" : {
         "revision" : "5d943224c3bb173e6ecf27295611615eba90c80e",
         "version" : "7.0.0"
+      }
+    },
+    {
+      "identity" : "swiftycrop",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/benedom/SwiftyCrop",
+      "state" : {
+        "branch" : "master",
+        "revision" : "f3189b74d49db138c9a4a9982314172fff8f9251"
       }
     },
     {

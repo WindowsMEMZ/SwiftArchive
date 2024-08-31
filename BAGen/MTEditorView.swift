@@ -9,6 +9,7 @@ import SwiftUI
 import PhotosUI
 import DarockKit
 import SwiftyJSON
+import SwiftyCrop
 import ScreenshotableView
 import SwiftVideoGenerator
 
@@ -26,6 +27,7 @@ struct MTEditorView: View {
     @Environment(\.dismiss) var dismiss
     @FocusState var messageInputFocusState
     @Namespace var chatScrollLastItem
+    @AppStorage("IsAutoSave") var autoSave = true
     @State var fullProjData: MTBase.FullData?
     @State var newMessageTextCache = ""
     @State var isChatActionsPresented = false
@@ -46,7 +48,7 @@ struct MTEditorView: View {
                 ScrollViewReader { scrollProxy in
                     ScrollView {
                         if fullProjData != nil {
-                            MainChatsView(fullProjData: $fullProjData, newMessageTextCache: $newMessageTextCache, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: $isInserting)
+                            MainChatsView(projName: projName, fullProjData: $fullProjData, newMessageTextCache: $newMessageTextCache, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: $isInserting)
                                 .onAppear {
                                     scrollProxy.scrollTo(chatScrollLastItem)
                                 }
@@ -65,7 +67,7 @@ struct MTEditorView: View {
                                     isTippedBads = true
                                     DarockKit.UIAlert.shared.presentAlert(title: "不适宜词汇", subtitle: "我们在您的输入中发现了可能影响蔚蓝档案二创环境的词汇\n如果这是一次误报,或您执意添加此项,请再次轻点发送按钮", icon: .heart, style: .iOS17AppleMusic, haptic: .warning, duration: 7)
                                 } else {
-                                    fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: { () -> Bool in
+                                    let shouldShowAsNew = { () -> Bool in
                                         if let upMessage = fullProjData!.chatData.last {
                                             if upMessage.characterId == currentSelectCharacterData.id {
                                                 return false
@@ -75,17 +77,27 @@ struct MTEditorView: View {
                                         } else {
                                             return true
                                         }
-                                    }()))
+                                    }()
+                                    if !currentSelectCharacterData.id.hasPrefix("SACustom") {
+                                        fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: shouldShowAsNew))
+                                    } else {
+                                        fullProjData!.chatData.append(.init(characterId: "\(currentSelectCharacterData.fullName)%^Split^@\(currentSelectCharacterData.imageNames[0])", imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: shouldShowAsNew))
+                                    }
                                     newMessageTextCache = ""
                                     isTippedBads = false
                                     mtIsHaveUnsavedChange = true
+                                    if autoSave {
+                                        SaveProject()
+                                    }
                                 }
                             }
                             .focused($messageInputFocusState)
                             .onChange(of: messageInputFocusState) {
                                 if messageInputFocusState {
-                                    withAnimation {
-                                        scrollProxy.scrollTo(fullProjData!.chatData.count - 1)
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        withAnimation {
+                                            scrollProxy.scrollTo(fullProjData!.chatData.count - 1)
+                                        }
                                     }
                                 }
                             }
@@ -120,7 +132,9 @@ struct MTEditorView: View {
                         })
                         .sheet(isPresented: $isChatActionsPresented, onDismiss: {
                             
-                        }, content: {ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: $fullProjData, projName: projName, dismissAction: dismiss)})
+                        }, content: {
+                            ChatActionsView(characterSelectTab: $characterSelectTab, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, fullProjData: $fullProjData, projName: projName, dismissAction: dismiss)
+                        })
                     }
                     .padding(.horizontal)
                     .disabled(fullProjData == nil)
@@ -135,8 +149,18 @@ struct MTEditorView: View {
             }
         }
         .onDisappear {
+            if autoSave {
+                SaveProject()
+            }
             mtIsHaveUnsavedChange = false
         }
+    }
+    
+    func SaveProject() {
+        let projStrData = MTBase().toOutString(from: fullProjData!)
+        let filePath = AppFileManager(path: "MTProj").GetFilePath(name: projName).path
+        try! projStrData.write(toFile: filePath, atomically: true, encoding: .utf8)
+        mtIsHaveUnsavedChange = false
     }
     
     struct Triangle: Shape {
@@ -151,6 +175,7 @@ struct MTEditorView: View {
     }
     
     struct MainChatsView: View {
+        var projName: String
         @Binding var fullProjData: MTBase.FullData?
         @Binding var newMessageTextCache: String
         @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
@@ -158,6 +183,7 @@ struct MTEditorView: View {
         @Binding var isInserting: Bool
         var displayMessageIndexRange: ClosedRange<Int>? = nil // For ScreenShot
         @Namespace var chatScrollLastItem
+        @AppStorage("IsAutoSave") var autoSave = true
         var body: some View {
             VStack {
                 Spacer()
@@ -286,12 +312,28 @@ struct MTEditorView: View {
                             } else {
                                 // MARK: Other Character Message View
                                 HStack(alignment: .top) {
-                                    let thisCharacterData = MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
+                                    let thisCharacterData = {
+                                        if !fullProjData!.chatData[i].characterId.contains("%^Split^@") {
+                                            return MTBase().getCharacterData(byId: fullProjData!.chatData[i].characterId)!
+                                        } else {
+                                            let spd = fullProjData!.chatData[i].characterId.components(separatedBy: "%^Split^@")
+                                            return MTBase.SingleCharacterData(id: "SACustom", fullName: spd[0], shortName: spd[0], imageNames: [spd[1]])
+                                        }
+                                    }()
                                     if fullProjData!.chatData[i].shouldShowAsNew {
-                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "webp")!))!)
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .clipShape(Circle())
+                                        Group {
+                                            if !thisCharacterData.id.hasPrefix("SACustom") {
+                                                Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: thisCharacterData.imageNames[fullProjData!.chatData[i].imageGroupIndex], withExtension: "webp")!))!)
+                                                    .resizable()
+                                            } else {
+                                                if let image = base64ToImage(from: thisCharacterData.imageNames[0]) {
+                                                    Image(uiImage: image)
+                                                        .resizable()
+                                                }
+                                            }
+                                        }
+                                        .frame(width: 50, height: 50)
+                                        .clipShape(Circle())
                                     } else {
                                         Circle()
                                             .fill(Color.clear)
@@ -370,7 +412,7 @@ struct MTEditorView: View {
                         }
                         .onTapGesture {
                             if isInserting {
-                                fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: { () -> Bool in
+                                let shouldShowAsNew = { () -> Bool in
                                     if let upMessage = fullProjData!.chatData.last {
                                         if upMessage.characterId == currentSelectCharacterData.id {
                                             return false
@@ -380,15 +422,26 @@ struct MTEditorView: View {
                                     } else {
                                         return true
                                     }
-                                }()), at: i + 1)
+                                }()
+                                if !currentSelectCharacterData.id.hasPrefix("SACustom") {
+                                    fullProjData!.chatData.insert(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: shouldShowAsNew), at: i + 1)
+                                } else {
+                                    fullProjData!.chatData.insert(.init(characterId: "\(currentSelectCharacterData.fullName)%^Split^@\(currentSelectCharacterData.imageNames[0])", imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: newMessageTextCache, shouldShowAsNew: shouldShowAsNew), at: i + 1)
+                                }
                                 isInserting = false
                                 newMessageTextCache = ""
+                                if autoSave {
+                                    SaveProject()
+                                }
                             } else {
                                 DarockKit.UIAlert.shared.presentAlert(title: "操作", subtitle: "长按以删除此对话", icon: .none, style: .iOS17AppleMusic, haptic: .warning)
                             }
                         }
                         .onLongPressGesture(minimumDuration: 2) {
                             fullProjData!.chatData.remove(at: i)
+                            if autoSave {
+                                SaveProject()
+                            }
                         }
                         .id(i)
                     }
@@ -398,6 +451,13 @@ struct MTEditorView: View {
                     .id(chatScrollLastItem)
             }
             .background(Color(hex: 0xFFF6DD))
+        }
+        
+        func SaveProject() {
+            let projStrData = MTBase().toOutString(from: fullProjData!)
+            let filePath = AppFileManager(path: "MTProj").GetFilePath(name: projName).path
+            try! projStrData.write(toFile: filePath, atomically: true, encoding: .utf8)
+            mtIsHaveUnsavedChange = false
         }
     }
     
@@ -476,10 +536,19 @@ struct MTEditorView: View {
                                             Image(systemName: "checkmark")
                                                 .foregroundColor(.blue)
                                         }
-                                        Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: (characterSelectTab![i]["Character"]! as! MTBase.SingleCharacterData).imageNames[characterSelectTab![i]["ImageIndex"]! as! Int], withExtension: "webp")!))!)
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .clipShape(Circle())
+                                        Group {
+                                            if !(characterSelectTab![i]["Character"]! as! MTBase.SingleCharacterData).id.hasPrefix("SACustom") {
+                                                Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: (characterSelectTab![i]["Character"]! as! MTBase.SingleCharacterData).imageNames[characterSelectTab![i]["ImageIndex"]! as! Int], withExtension: "webp")!))!)
+                                                    .resizable()
+                                            } else {
+                                                if let image = base64ToImage(from: (characterSelectTab![i]["Character"]! as! MTBase.SingleCharacterData).imageNames[0]) {
+                                                    Image(uiImage: image)
+                                                        .resizable()
+                                                }
+                                            }
+                                        }
+                                        .frame(width: 50, height: 50)
+                                        .clipShape(Circle())
                                         Spacer()
                                         Text((characterSelectTab![i]["Character"]! as! MTBase.SingleCharacterData).fullName)
                                     }
@@ -509,39 +578,92 @@ struct MTEditorView: View {
             @Binding var characterSelectTab: [[String: Any]]?
             @Binding var nowTabviewSelection: Int
             @Environment(\.dismiss) var dismiss
-            @State var allCharacterDatas: [MTBase.SingleCharacterData]? = nil
+            @State var allCharacterDatas: [MTBase.SingleCharacterData]?
             @State var searchText = ""
-            @State var searchedCharacterDatas: [MTBase.SingleCharacterData]? = nil
+            @State var searchedCharacterDatas: [MTBase.SingleCharacterData]?
+            @State var customCharacters = [MTBase.SingleCharacterData]()
             var body: some View {
                 NavigationStack {
                     List {
+                        Section {
+                            NavigationLink(destination: { AddCustomCharacterView() }, label: {
+                                HStack {
+                                    Image(systemName: "plus")
+                                        .foregroundStyle(Color.blue)
+                                    Spacer()
+                                    Text("添加自定角色")
+                                }
+                            })
+                            if !customCharacters.isEmpty {
+                                ForEach(0..<customCharacters.count, id: \.self) { i in
+                                    Button(action: {
+                                        if characterSelectTab == nil {
+                                            characterSelectTab = [[String: Any]]()
+                                        }
+                                        characterSelectTab!.append(["Character": customCharacters[i], "ImageIndex": 0])
+                                        nowTabviewSelection = 0
+                                        DarockKit.UIAlert.shared.presentAlert(title: "添加成功", subtitle: "已将\(customCharacters[i].shortName)添加到对话角色库", icon: .done, style: .iOS17AppleMusic, haptic: .success)
+                                    }, label: {
+                                        HStack {
+                                            if let image = base64ToImage(from: customCharacters[i].imageNames[0]) {
+                                                Image(uiImage: image)
+                                                    .resizable()
+                                                    .frame(width: 50, height: 50)
+                                                    .clipShape(Circle())
+                                            }
+                                            Spacer()
+                                            Text(customCharacters[i].fullName)
+                                                .foregroundStyle(Color.black)
+                                        }
+                                    })
+                                    .swipeActions {
+                                        Button(role: .destructive, action: {
+                                            do {
+                                                try FileManager.default.removeItem(atPath: NSHomeDirectory() + "/Documents/CustomCharacters/\(customCharacters[i].id.dropFirst(8)).cc")
+                                                refreshCustomCharacters()
+                                            } catch {
+                                                print(error)
+                                            }
+                                        }, label: {
+                                            Image(systemName: "xmark.bin.fill")
+                                        })
+                                    }
+                                }
+                            }
+                        } header: {
+                            Text("自定角色")
+                        }
                         if allCharacterDatas != nil {
-                            if searchText == "" || searchedCharacterDatas == nil || searchedCharacterDatas?.count == 0 {
-                                ForEach(0..<allCharacterDatas!.count, id: \.self) { i in
-                                    NavigationLink(destination: {AddCharacterSettingView(selectedCharacterData: allCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection)}, label: {
-                                        HStack {
-                                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: allCharacterDatas![i].imageNames[0], withExtension: "webp")!))!)
-                                                .resizable()
-                                                .frame(width: 50, height: 50)
-                                                .clipShape(Circle())
-                                            Spacer()
-                                            Text(allCharacterDatas![i].fullName)
-                                        }
-                                    })
+                            Section {
+                                if searchText == "" || searchedCharacterDatas == nil || searchedCharacterDatas?.count == 0 {
+                                    ForEach(0..<allCharacterDatas!.count, id: \.self) { i in
+                                        NavigationLink(destination: { AddCharacterSettingView(selectedCharacterData: allCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection) }, label: {
+                                            HStack {
+                                                Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: allCharacterDatas![i].imageNames[0], withExtension: "webp")!))!)
+                                                    .resizable()
+                                                    .frame(width: 50, height: 50)
+                                                    .clipShape(Circle())
+                                                Spacer()
+                                                Text(allCharacterDatas![i].fullName)
+                                            }
+                                        })
+                                    }
+                                } else {
+                                    ForEach(0..<searchedCharacterDatas!.count, id: \.self) { i in
+                                        NavigationLink(destination: { AddCharacterSettingView(selectedCharacterData: searchedCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection) }, label: {
+                                            HStack {
+                                                Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: searchedCharacterDatas![i].imageNames[0], withExtension: "webp")!))!)
+                                                    .resizable()
+                                                    .frame(width: 50, height: 50)
+                                                    .clipShape(Circle())
+                                                Spacer()
+                                                Text(searchedCharacterDatas![i].fullName)
+                                            }
+                                        })
+                                    }
                                 }
-                            } else {
-                                ForEach(0..<searchedCharacterDatas!.count, id: \.self) { i in
-                                    NavigationLink(destination: {AddCharacterSettingView(selectedCharacterData: searchedCharacterDatas![i], characterSelectTab: $characterSelectTab, nowTabviewSelection: $nowTabviewSelection)}, label: {
-                                        HStack {
-                                            Image(uiImage: UIImage(data: try! Data(contentsOf: Bundle.main.url(forResource: searchedCharacterDatas![i].imageNames[0], withExtension: "webp")!))!)
-                                                .resizable()
-                                                .frame(width: 50, height: 50)
-                                                .clipShape(Circle())
-                                            Spacer()
-                                            Text(searchedCharacterDatas![i].fullName)
-                                        }
-                                    })
-                                }
+                            } header: {
+                                Text("官方角色")
                             }
                         }
                     }
@@ -562,6 +684,7 @@ struct MTEditorView: View {
                     }
                     .onAppear {
                         allCharacterDatas = MTBase().getAllCharacterDatas()
+                        refreshCustomCharacters()
                     }
                     .onChange(of: searchText) {
                         searchedCharacterDatas = [MTBase.SingleCharacterData]()
@@ -569,6 +692,104 @@ struct MTEditorView: View {
                             if allCharacterDatas![i].fullName.contains(searchText) {
                                 searchedCharacterDatas!.append(allCharacterDatas![i])
                             }
+                        }
+                    }
+                }
+            }
+            func refreshCustomCharacters() {
+                do {
+                    let customs = try FileManager.default.contentsOfDirectory(atPath: NSHomeDirectory() + "/Documents/CustomCharacters")
+                    customCharacters.removeAll()
+                    for fileName in customs {
+                        if let data = try? String(contentsOfFile: NSHomeDirectory() + "/Documents/CustomCharacters/\(fileName)", encoding: .utf8),
+                           let charaData = getJsonData(MTBase.SingleCharacterData.self, from: data) {
+                            customCharacters.append(charaData)
+                        }
+                    }
+                } catch {
+                    print(error)
+                }
+            }
+            
+            struct AddCustomCharacterView: View {
+                @Environment(\.dismiss) var dismiss
+                @State var selectedAvator: PhotosPickerItem?
+                @State var isPhotoPickerPresented = false
+                @State var cropAvator: UIImage?
+                @State var resultAvator: UIImage?
+                @State var isImageCropperPresented = false
+                @State var nameInput = ""
+                var body: some View {
+                    List {
+                        Section {
+                            Group {
+                                if let resultAvator {
+                                    Image(uiImage: resultAvator)
+                                        .resizable()
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(Circle())
+                                } else {
+                                    VStack {
+                                        Image(systemName: "person.crop.circle.fill")
+                                            .font(.system(size: 50))
+                                            .foregroundStyle(Color.blue)
+                                        Text("轻触以选择头像...")
+                                            .font(.system(size: 14))
+                                    }
+                                }
+                            }
+                            .centerAligned()
+                            .onTapGesture {
+                                isPhotoPickerPresented = true
+                            }
+                        }
+                        .listRowBackground(Color.clear)
+                        Section {
+                            TextField("角色名...", text: $nameInput)
+                        }
+                    }
+                    .navigationTitle("自定角色")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                do {
+                                    if !FileManager.default.fileExists(atPath: NSHomeDirectory() + "/Documents/CustomCharacters") {
+                                        try FileManager.default.createDirectory(atPath: NSHomeDirectory() + "/Documents/CustomCharacters", withIntermediateDirectories: true)
+                                    }
+                                    let uuid = UUID().uuidString
+                                    if let str = jsonString(from: MTBase.SingleCharacterData(id: "SACustom\(uuid)", fullName: nameInput, shortName: nameInput, imageNames: [resultAvator!.pngData()!.base64EncodedString()])) {
+                                        try str.write(toFile: NSHomeDirectory() + "/Documents/CustomCharacters/\(uuid).cc", atomically: true, encoding: .utf8)
+                                        dismiss()
+                                    }
+                                } catch {
+                                    print(error)
+                                }
+                            }, label: {
+                                Image(systemName: "plus")
+                            })
+                            .disabled(resultAvator == nil || nameInput.isEmpty)
+                        }
+                    }
+                    .photosPicker(isPresented: $isPhotoPickerPresented, selection: $selectedAvator, matching: .images)
+                    .fullScreenCover(isPresented: $isImageCropperPresented) {
+                        NavigationView {
+                            SwiftyCropView(imageToCrop: cropAvator!, maskShape: .circle) { croppedImage in
+                                resultAvator = croppedImage
+                            }
+                        }
+                    }
+                    .onChange(of: selectedAvator) {
+                        if let selectedAvator {
+                            selectedAvator.loadTransferable(type: UIImageTransfer.self) { result in
+                                if case .success(let dataTransfer) = result, let image = dataTransfer {
+                                    cropAvator = image.image
+                                }
+                            }
+                        }
+                    }
+                    .onChange(of: cropAvator) {
+                        if cropAvator != nil {
+                            isImageCropperPresented = true
                         }
                     }
                 }
@@ -692,7 +913,11 @@ struct MTEditorView: View {
                             case .success(let success):
                                 if let image = success {
                                     let imgBase64 = image.image.pngData()!.base64EncodedString()
-                                    fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: true, content: imgBase64, shouldShowAsNew: true))
+                                    if !currentSelectCharacterData.id.hasPrefix("SACustom") {
+                                        fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: true, content: imgBase64, shouldShowAsNew: true))
+                                    } else {
+                                        fullProjData!.chatData.append(.init(characterId: "\(currentSelectCharacterData.fullName)%^Split^@\(currentSelectCharacterData.imageNames[0])", imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: imgBase64, shouldShowAsNew: true))
+                                    }
                                 }
                             case .failure(let error):
                                 print(error)
@@ -783,7 +1008,11 @@ struct MTEditorView: View {
                                     if !images.isEmpty {
                                         ForEach(0..<images.count, id: \.self) { i in
                                             Button(action: {
-                                                fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: true, content: "./AvatorDiffs/\(choseSchoolName)/\(choseCharacterName)/\(images[i])", shouldShowAsNew: true))
+                                                if !currentSelectCharacterData.id.hasPrefix("SACustom") {
+                                                    fullProjData!.chatData.append(.init(characterId: currentSelectCharacterData.id, imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: true, content: "./AvatorDiffs/\(choseSchoolName)/\(choseCharacterName)/\(images[i])", shouldShowAsNew: true))
+                                                } else {
+                                                    fullProjData!.chatData.append(.init(characterId: "\(currentSelectCharacterData.fullName)%^Split^@\(currentSelectCharacterData.imageNames[0])", imageGroupIndex: currentSelectCharacterImageGroupIndex, isImage: false, content: "./AvatorDiffs/\(choseSchoolName)/\(choseCharacterName)/\(images[i])", shouldShowAsNew: true))
+                                                }
                                                 dismissSheet()
                                             }, label: {
                                                 HStack {
@@ -902,6 +1131,7 @@ struct MTEditorView: View {
             @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
             @Binding var currentSelectCharacterImageGroupIndex: Int
             @Environment(\.dismiss) var dismiss
+            @AppStorage("IsAutoSave") var autoSave = true
             @State var isExportAsImagePresented = false
             @State var isExportAsVideoPresented = false
             @State var isShareSheetPresented = false
@@ -918,7 +1148,7 @@ struct MTEditorView: View {
                             })
                             .sheet(isPresented: $isExportAsImagePresented, onDismiss: {
                                 dismiss()
-                            }, content: { ExportAsImageView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex) })
+                            }, content: { ExportAsImageView(projName: projName, fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex) })
                             .disabled(fullProjData!.chatData.isEmpty)
                             Button(action: {
                                 isExportAsVideoPresented = true
@@ -927,7 +1157,7 @@ struct MTEditorView: View {
                             })
                             .sheet(isPresented: $isExportAsVideoPresented, onDismiss: {
                                 dismiss()
-                            }, content: { ExportAsVideoView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex) })
+                            }, content: { ExportAsVideoView(projName: projName, fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex) })
                             .disabled(fullProjData!.chatData.isEmpty)
                             Button(action: {
                                 let sourceURL = AppFileManager(path: "MTProj").GetPath(projName).url
@@ -950,6 +1180,7 @@ struct MTEditorView: View {
                         }
                         
                         Section(header: Text("操作")) {
+                            Toggle("自动保存项目", isOn: $autoSave)
                             Button(action: {
                                 SaveProject()
                                 mtIsHaveUnsavedChange = false
@@ -1031,6 +1262,7 @@ struct MTEditorView: View {
             }
             
             struct ImageShoterView: View {
+                var projName: String
                 @Binding var fullProjData: MTBase.FullData?
                 @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
                 @Binding var currentSelectCharacterImageGroupIndex: Int
@@ -1099,7 +1331,7 @@ struct MTEditorView: View {
                             ScreenshotableView(shotting: $isScreenShotting[0]) { screenshot in
                                 finishHandler(screenshot, 0)
                             } content: { style in
-                                MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false))
+                                MainChatsView(projName: projName, fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false))
                             }
                         } else {
                             if !splittedChatDatas.isEmpty {
@@ -1109,7 +1341,7 @@ struct MTEditorView: View {
                                         ScreenshotableView(shotting: $isScreenShotting[i]) { screenshot in
                                             finishHandler(screenshot, i)
                                         } content: { style in
-                                            MainChatsView(fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
+                                            MainChatsView(projName: projName, fullProjData: $fullProjData, newMessageTextCache: .constant(""), currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, isInserting: .constant(false), displayMessageIndexRange: { () -> ClosedRange<Int> in
                                                 var rangeStart = 0
                                                 for j in 0..<i {
                                                     rangeStart += splittedChatDatas[j].count
@@ -1132,6 +1364,7 @@ struct MTEditorView: View {
                 }
             }
             struct ExportAsImageView: View {
+                var projName: String
                 @Binding var fullProjData: MTBase.FullData?
                 @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
                 @Binding var currentSelectCharacterImageGroupIndex: Int
@@ -1144,7 +1377,7 @@ struct MTEditorView: View {
                     NavigationStack {
                         ScrollView {
                             VStack {
-                                ImageShoterView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, splittingMethod: $splittingMethod, isShottingAll: $isShotting, shottingImageCount: $shottingCount, finishHandler: $currentFinishHandler)
+                                ImageShoterView(projName: projName, fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, splittingMethod: $splittingMethod, isShottingAll: $isShotting, shottingImageCount: $shottingCount, finishHandler: $currentFinishHandler)
                                 Button(action: {
                                     if splittingMethod == .none {
                                         currentFinishHandler = { image, index in
@@ -1210,6 +1443,7 @@ struct MTEditorView: View {
                 }
             }
             struct ExportAsVideoView: View {
+                var projName: String
                 @Binding var fullProjData: MTBase.FullData?
                 @Binding var currentSelectCharacterData: MTBase.SingleCharacterData
                 @Binding var currentSelectCharacterImageGroupIndex: Int
@@ -1227,7 +1461,7 @@ struct MTEditorView: View {
                     NavigationStack {
                         ScrollView {
                             VStack {
-                                ImageShoterView(fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, splittingMethod: $splittingMethod, isShottingAll: $isShotting, shottingImageCount: $shottingCount, finishHandler: $currentFinishHandler)
+                                ImageShoterView(projName: projName, fullProjData: $fullProjData, currentSelectCharacterData: $currentSelectCharacterData, currentSelectCharacterImageGroupIndex: $currentSelectCharacterImageGroupIndex, splittingMethod: $splittingMethod, isShottingAll: $isShotting, shottingImageCount: $shottingCount, finishHandler: $currentFinishHandler)
                                 List {
                                     Section {
                                         HStack {
@@ -1357,6 +1591,8 @@ struct MTEditorView: View {
                     @Environment(\.dismiss) var dismiss
                     @State var allMusicNames = [String]()
                     @State var searchText = ""
+                    @State var audioPower1 = -160.0
+                    @State var audioPower2 = -160.0
                     var body: some View {
                         List {
                             Section {
@@ -1383,6 +1619,7 @@ struct MTEditorView: View {
                                                 do {
                                                     globalAudioPlayer = try AVAudioPlayer(contentsOf: Bundle.main.url(forResource: allMusicNames[i], withExtension: "mp3", subdirectory: "OSTAudio")!)
                                                     globalAudioPlayer.play()
+                                                    globalAudioPlayer.isMeteringEnabled = true
                                                 } catch {
                                                     print(error)
                                                 }
@@ -1392,9 +1629,20 @@ struct MTEditorView: View {
                                                         .foregroundStyle(Color.black)
                                                     Spacer()
                                                     if currentChoseName == allMusicNames[i] {
-                                                        Image(systemName: "checkmark")
-                                                            .bold()
-                                                            .foregroundStyle(Color.blue)
+//                                                        Image(systemName: "checkmark")
+//                                                            .bold()
+//                                                            .foregroundStyle(Color.blue)
+                                                        HStack(spacing: 2) {
+                                                            bar(5 + pow(((audioPower1 - 5 + 160) / 160), 20) * 25)
+                                                            bar(5 + pow(((audioPower2 - 3 + 160) / 160), 20) * 25)
+                                                            bar(5 + pow(((audioPower1 + 160) / 160), 20) * 25)
+                                                            bar(5 + pow(((audioPower2 + 160) / 160), 20) * 25)
+                                                            bar(5 + pow(((audioPower2 - 3 + 160) / 160), 20) * 25)
+                                                            bar(5 + pow(((audioPower1 - 5 + 160) / 160), 20) * 25)
+                                                        }
+                                                        .frame(width: 30)
+                                                        .animation(.smooth(duration: 0.1), value: audioPower1)
+                                                        .animation(.smooth(duration: 0.1), value: audioPower2)
                                                     }
                                                 }
                                             })
@@ -1412,10 +1660,21 @@ struct MTEditorView: View {
                             } catch {
                                 print(error)
                             }
+                            Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
+                                globalAudioPlayer.updateMeters()
+                                audioPower1 = Double(globalAudioPlayer.averagePower(forChannel: 0))
+                                audioPower2 = Double(globalAudioPlayer.averagePower(forChannel: 1))
+                            }
                         }
                         .onDisappear {
                             globalAudioPlayer.stop()
                         }
+                    }
+                    
+                    func bar(_ height: CGFloat) -> some View {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color(hex: 0xe3e3e1))
+                            .frame(height: height)
                     }
                 }
             }
@@ -1443,7 +1702,7 @@ class MTBase {
         var content: String
         var shouldShowAsNew: Bool
     }
-    struct SingleCharacterData: Identifiable, Equatable {
+    struct SingleCharacterData: Identifiable, Equatable, Codable {
         let id: String
         let fullName: String
         let shortName: String
@@ -1494,7 +1753,9 @@ class MTBase {
 }
 
 func base64ToImage(from inp: String) -> UIImage? {
-    let dataDecoded = Data(base64Encoded: inp, options: NSData.Base64DecodingOptions(rawValue: 0))!
-    let decodedimage = UIImage(data: dataDecoded)
-    return decodedimage
+    if let dataDecoded = Data(base64Encoded: inp, options: NSData.Base64DecodingOptions(rawValue: 0)) {
+        let decodedimage = UIImage(data: dataDecoded)
+        return decodedimage
+    }
+    return nil
 }

@@ -15,6 +15,7 @@
 		6BD5A6352AC988E7004B05F9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BD5A6342AC988E7004B05F9 /* Preview Assets.xcassets */; };
 		6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6BD5A63C2AC98912004B05F9 /* DarockKit */; };
 		8C2315DA2AD98C0A00AE96EE /* ScreenshotableView in Frameworks */ = {isa = PBXBuildFile; productRef = 8C2315D92AD98C0A00AE96EE /* ScreenshotableView */; };
+		8C3E83A32C838C9200686E9C /* SwiftyCrop in Frameworks */ = {isa = PBXBuildFile; productRef = 8C3E83A22C838C9200686E9C /* SwiftyCrop */; };
 		8C58C18C2C46B29400E45511 /* AvatorDiffs in Resources */ = {isa = PBXBuildFile; fileRef = 8C58C18B2C46B29300E45511 /* AvatorDiffs */; };
 		8C6912562C48540F000F85B4 /* TipShiroko.avif in Resources */ = {isa = PBXBuildFile; fileRef = 8C6912552C48540F000F85B4 /* TipShiroko.avif */; };
 		8C6912582C48EB5B000F85B4 /* MTExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C6912572C48EB57000F85B4 /* MTExporter.swift */; };
@@ -1560,6 +1561,7 @@
 			files = (
 				8C2315DA2AD98C0A00AE96EE /* ScreenshotableView in Frameworks */,
 				6BD5A63D2AC98912004B05F9 /* DarockKit in Frameworks */,
+				8C3E83A32C838C9200686E9C /* SwiftyCrop in Frameworks */,
 				6BB0220E2AC9B93D00460189 /* ZipArchive in Frameworks */,
 				8CC889942ADA7D3800191A59 /* AttributedString in Frameworks */,
 				8C6912772C493A41000F85B4 /* swift-video-generator in Frameworks */,
@@ -2432,6 +2434,7 @@
 				8C2315D92AD98C0A00AE96EE /* ScreenshotableView */,
 				8CC889932ADA7D3800191A59 /* AttributedString */,
 				8C6912762C493A41000F85B4 /* swift-video-generator */,
+				8C3E83A22C838C9200686E9C /* SwiftyCrop */,
 			);
 			productName = BAGen;
 			productReference = 6BD5A62A2AC988E6004B05F9 /* BAGen.app */;
@@ -2468,6 +2471,7 @@
 				8C2315D82AD98C0A00AE96EE /* XCRemoteSwiftPackageReference "ScreenshotableView" */,
 				8CC889922ADA7D3800191A59 /* XCRemoteSwiftPackageReference "AttributedString" */,
 				8C6912752C493A41000F85B4 /* XCRemoteSwiftPackageReference "swift-video-generator" */,
+				8C3E83A12C838C9200686E9C /* XCRemoteSwiftPackageReference "SwiftyCrop" */,
 			);
 			productRefGroup = 6BD5A62B2AC988E6004B05F9 /* Products */;
 			projectDirPath = "";
@@ -3414,7 +3418,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Neinnko.BAGen;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -3456,7 +3460,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Neinnko.BAGen;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -3516,6 +3520,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		8C3E83A12C838C9200686E9C /* XCRemoteSwiftPackageReference "SwiftyCrop" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/benedom/SwiftyCrop";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 		8C6912752C493A41000F85B4 /* XCRemoteSwiftPackageReference "swift-video-generator" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/dev-labs-bg/swift-video-generator";
@@ -3549,6 +3561,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8C2315D82AD98C0A00AE96EE /* XCRemoteSwiftPackageReference "ScreenshotableView" */;
 			productName = ScreenshotableView;
+		};
+		8C3E83A22C838C9200686E9C /* SwiftyCrop */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8C3E83A12C838C9200686E9C /* XCRemoteSwiftPackageReference "SwiftyCrop" */;
+			productName = SwiftyCrop;
 		};
 		8C6912762C493A41000F85B4 /* swift-video-generator */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -17,7 +17,7 @@
 - [x] Momotalk 编辑器主体
 - [x] Momotalk 编辑器-进阶操作
 - [x] Momotalk 编辑器导出(图片)
-- [ ] Momotalk 编辑器导出(视频)
+- [x] Momotalk 编辑器导出(视频)
 
 ## 安装
 ### 方案一(TestFlight) [推荐]
