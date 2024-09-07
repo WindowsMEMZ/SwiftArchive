@@ -64,7 +64,7 @@ struct MTRawEditorView: View {
                     .background(.blue)
                     .cornerRadius(14)
                     .foregroundColor(.white)
-                    .sheet(isPresented: $isCodeHelpPresented, content: {RawCodeHelpView()})
+                    .sheet(isPresented: $isCodeHelpPresented, content: { RawCodeHelpView() })
                 }
                 CodeTextEditor(text: $fullFileContent) {
                     highlightCode()
@@ -208,7 +208,7 @@ struct MTRawEditorView: View {
             if (i == spdByLine.count - 1) && spdByLine[i] == "" { break }
             let spdEachPart = spdByLine[i].split(separator: "|").map { return String($0) }
             if spdEachPart.count == 4 {
-                if !allCharacterIds.contains(spdEachPart[0]) && spdEachPart[0] != "Sensei" && spdEachPart[0] != "System" && spdEachPart[0] != "SpecialEvent" {
+                if !allCharacterIds.contains(spdEachPart[0]) && spdEachPart[0] != "Sensei" && spdEachPart[0] != "System" && spdEachPart[0] != "SpecialEvent" && !spdEachPart[0].contains("%^Split^@") {
                     codeIssues.append(.init(id: "MT003", desc: "角色 ID 不存在", line: i + 1))
                 }
                 if spdEachPart[3] != "false" && spdEachPart[3] != "true" {
